@@ -92,7 +92,8 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 
 | Secret | Description |
 |---|---|
-| `AWS_ROLE_ARN` | ARN of an IAM role configured for [GitHub OIDC](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) (e.g. `arn:aws:iam::123456789012:role/github-deploy`) |
+| `AWS_ACCESS_KEY_ID` | IAM user access key ID |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret access key |
 | `VPC_ID` | Target VPC ID |
 | `PUBLIC_SUBNET_ID` | Target public subnet ID |
 
@@ -101,34 +102,7 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 - **Push to `main`** — automatically deploys the stack.
 - **Manual dispatch** — go to Actions → "Deploy CloudFormation Stack" → Run workflow, and choose `deploy` or `destroy`.
 
-### IAM Role Trust Policy
-
-The role referenced by `AWS_ROLE_ARN` needs a trust policy that allows GitHub OIDC. Minimal example:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-        },
-        "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:<GITHUB_ORG>/<REPO_NAME>:*"
-        }
-      }
-    }
-  ]
-}
-```
-
-The role itself needs permissions for CloudFormation, EC2, IAM, CloudWatch, and Logs.
+The IAM user needs permissions for CloudFormation, EC2, IAM, CloudWatch, and Logs.
 
 ## Cleanup
 
