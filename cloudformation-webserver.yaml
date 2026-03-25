@@ -97,6 +97,15 @@ Resources:
       Roles:
         - !Ref InstanceRole
 
+  WebServerEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref WebServerInstance
+      Tags:
+        - Key: application_id
+          Value: app01
+
   WebServerErrorLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -136,7 +145,7 @@ Resources:
 Outputs:
   PublicIp:
     Description: Public IP address of the EC2 instance
-    Value: !GetAtt WebServerInstance.PublicIp
+    Value: !Ref WebServerEIP
   HelloWorldUrl:
     Description: URL to test the Hello World app
-    Value: !Sub http://${WebServerInstance.PublicIp}/index.html
+    Value: !Sub http://${WebServerEIP}/index.html
