@@ -35,7 +35,7 @@ All taggable resources carry the tag `application_id = app01`.
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation-webserver.yaml \
-  --stack-name hello-world-webserver \
+  --stack-name DevOpsAgent-EC2-webserver-GitHub \
   --parameter-overrides \
       VpcId=vpc-0abc123 \
       PublicSubnetId=subnet-0def456 \
@@ -50,7 +50,7 @@ After deployment completes, retrieve the outputs:
 
 ```bash
 aws cloudformation describe-stacks \
-  --stack-name hello-world-webserver \
+  --stack-name DevOpsAgent-EC2-webserver-GitHub \
   --query "Stacks[0].Outputs"
 ```
 
@@ -107,5 +107,5 @@ The IAM user needs permissions for CloudFormation, EC2, IAM, CloudWatch, and Log
 ## Cleanup
 
 ```bash
-aws cloudformation delete-stack --stack-name hello-world-webserver
+aws cloudformation delete-stack --stack-name DevOpsAgent-EC2-webserver-GitHub
 ```

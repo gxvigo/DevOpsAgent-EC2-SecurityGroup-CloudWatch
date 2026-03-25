@@ -15,7 +15,7 @@ on:
           - destroy
 
 env:
-  STACK_NAME: hello-world-webserver
+  STACK_NAME: DevOpsAgent-EC2-webserver-GitHub
   AWS_REGION: us-east-1
   TEMPLATE_FILE: cloudformation-webserver.yaml
 
