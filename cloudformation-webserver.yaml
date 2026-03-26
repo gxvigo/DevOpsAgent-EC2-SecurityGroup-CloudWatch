@@ -279,7 +279,7 @@ Resources:
   HeartbeatCanary:
     Type: AWS::Synthetics::Canary
     Properties:
-      Name: !Sub ${AWS::StackName}-hb
+      Name: webserver-heartbeat
       RuntimeVersion: syn-nodejs-puppeteer-9.1
       ArtifactS3Location: !Sub s3://${CanaryArtifactBucket}
       ExecutionRoleArn: !GetAtt CanaryRole.Arn
