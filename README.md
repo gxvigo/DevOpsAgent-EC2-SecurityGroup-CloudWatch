@@ -96,12 +96,12 @@ Hello World
 
 - Apache access logs are shipped to `/webserver/<stack-name>/access_log`.
 - Apache error logs are shipped to `/webserver/<stack-name>/error_log`.
-- The CloudWatch Alarm (`WebServerErrorAlarm`) triggers when more than 5 errors are recorded in a 5-minute period.
-- Check alarm state:
+- A CloudWatch Synthetics canary (`webserver-heartbeat`) hits the ALB endpoint every 5 minutes and verifies a 200 response.
+- The `CanaryFailedAlarm` fires when the canary success rate drops below 100%.
+- Check canary status:
 
 ```bash
-aws cloudwatch describe-alarms \
-  --alarm-names "<stack-name>-WebServerErrorAlarm-*"
+aws synthetics get-canary --name webserver-heartbeat
 ```
 
 ## CI/CD — GitHub Actions

@@ -68,7 +68,10 @@
         "lambda:GetPolicy",
         "lambda:TagResource",
         "lambda:UntagResource",
-        "lambda:ListTags"
+        "lambda:ListTags",
+        "lambda:PublishLayerVersion",
+        "lambda:GetLayerVersion",
+        "lambda:DeleteLayerVersion"
       ],
       "Resource": [
         "arn:aws:lambda:*:*:function:NameHandlerFunction",
@@ -237,13 +240,16 @@
         "s3:ListBucket",
         "s3:PutObject",
         "s3:GetObject",
+        "s3:GetObjectVersion",
         "s3:DeleteObject",
         "s3:ListBucketVersions",
         "s3:GetBucketVersioning"
       ],
       "Resource": [
         "arn:aws:s3:::devopsagent-ec2-webserver-git-canary*",
-        "arn:aws:s3:::devopsagent-ec2-webserver-git-canary*/*"
+        "arn:aws:s3:::devopsagent-ec2-webserver-git-canary*/*",
+        "arn:aws:s3:::aws-synthetics-library-*",
+        "arn:aws:s3:::aws-synthetics-library-*/*"
       ]
     },
     {

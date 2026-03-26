@@ -192,33 +192,6 @@ Resources:
         - Key: application_id
           Value: app01
 
-  ErrorRateMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      LogGroupName: !Ref WebServerErrorLogGroup
-      FilterPattern: "[date, time, level = \"*error*\", ...]"
-      MetricTransformations:
-        - MetricNamespace: !Sub ${AWS::StackName}/WebServer
-          MetricName: ErrorCount
-          MetricValue: '1'
-          DefaultValue: 0
-
-  WebServerErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Alarm when webserver error rate exceeds threshold
-      Namespace: !Sub ${AWS::StackName}/WebServer
-      MetricName: ErrorCount
-      Statistic: Sum
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 5
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Tags:
-        - Key: application_id
-          Value: app01
-
   # --- Synthetics Canary ---
 
   CanaryArtifactBucket:
