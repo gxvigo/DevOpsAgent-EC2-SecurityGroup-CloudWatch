@@ -23,14 +23,18 @@ Resources:
     Properties:
       GroupDescription: Allow HTTP access on port 80
       VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 2.0.0.0/0
       Tags:
         - Key: application_id
           Value: app01
+
+  WebServerSGIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WebServerSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
 
   WebServerInstance:
     Type: AWS::EC2::Instance
