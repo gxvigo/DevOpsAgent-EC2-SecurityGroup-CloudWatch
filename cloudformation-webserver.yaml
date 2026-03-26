@@ -225,7 +225,6 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
     Properties:
-      BucketName: !Sub ${AWS::StackName}-canary-artifacts-${AWS::AccountId}
       LifecycleConfiguration:
         Rules:
           - Id: ExpireArtifacts

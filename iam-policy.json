@@ -242,10 +242,8 @@
         "s3:GetBucketVersioning"
       ],
       "Resource": [
-        "arn:aws:s3:::DevOpsAgent-EC2-webserver-GitHub-canary-artifacts-*",
-        "arn:aws:s3:::DevOpsAgent-EC2-webserver-GitHub-canary-artifacts-*/*",
-        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary-artifacts-*",
-        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary-artifacts-*/*"
+        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary*",
+        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary*/*"
       ]
     },
     {
