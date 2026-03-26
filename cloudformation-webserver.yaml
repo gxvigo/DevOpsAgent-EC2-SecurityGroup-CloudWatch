@@ -219,6 +219,118 @@ Resources:
         - Key: application_id
           Value: app01
 
+  # --- Synthetics Canary ---
+
+  CanaryArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-canary-artifacts-${AWS::AccountId}
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireArtifacts
+            Status: Enabled
+            ExpirationInDays: 7
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  CanaryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CanaryPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub ${CanaryArtifactBucket.Arn}/*
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: !GetAtt CanaryArtifactBucket.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/cwsyn-*
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    cloudwatch:namespace: CloudWatchSynthetics
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  HeartbeatCanary:
+    Type: AWS::Synthetics::Canary
+    Properties:
+      Name: !Sub ${AWS::StackName}-hb
+      RuntimeVersion: syn-nodejs-puppeteer-9.1
+      ArtifactS3Location: !Sub s3://${CanaryArtifactBucket}
+      ExecutionRoleArn: !GetAtt CanaryRole.Arn
+      Schedule:
+        Expression: rate(5 minutes)
+      StartCanaryAfterCreation: true
+      Code:
+        Handler: index.handler
+        Script: !Sub |
+          const { URL } = require('url');
+          const synthetics = require('Synthetics');
+          const log = require('SyntheticsLogger');
+
+          const handler = async () => {
+            const url = 'http://${ApplicationLoadBalancer.DNSName}/index.html';
+            log.info('Checking URL: ' + url);
+            const page = await synthetics.getPage();
+            const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (response.status() !== 200) {
+              throw new Error('Expected 200 but got ' + response.status());
+            }
+            log.info('Heartbeat check passed');
+          };
+
+          exports.handler = async () => {
+            return await synthetics.executeStep('heartbeat', handler);
+          };
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  CanaryFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when the heartbeat canary fails
+      Namespace: CloudWatchSynthetics
+      MetricName: SuccessPercent
+      Dimensions:
+        - Name: CanaryName
+          Value: !Ref HeartbeatCanary
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      Tags:
+        - Key: application_id
+          Value: app01
+
 Outputs:
   PublicIp:
     Description: Public IP address of the EC2 instance

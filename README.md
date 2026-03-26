@@ -1,16 +1,21 @@
 # Hello World Webserver — CloudFormation
 
-A single CloudFormation template that deploys an Apache webserver on EC2, serves a "Hello World" page, and monitors error rates with CloudWatch.
+A single CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a "Hello World" page, and monitors error rates with CloudWatch.
 
 ## Architecture
 
 | Resource | Purpose |
 |---|---|
+| Application Load Balancer | Internet-facing ALB that routes HTTP traffic to the EC2 instance |
+| ALB Security Group | Allows inbound TCP port 80 from the internet |
+| ALB Target Group | Registers the EC2 instance with health checks on `/index.html` |
+| ALB Listener | Listens on port 80 and forwards to the target group |
 | EC2 Instance | Runs Apache httpd, serves `index.html` |
-| Security Group | Allows inbound TCP port 80 from anywhere |
+| EC2 Security Group | Allows inbound TCP port 80 from the ALB security group only |
+| Elastic IP | Static public IP attached to the EC2 instance |
 | IAM Role + Instance Profile | Grants the instance permission to push logs to CloudWatch |
-| CloudWatch Log Group | Stores Apache error logs (7-day retention) |
-| CloudWatch Metric Filter | Counts error-level entries in the log group |
+| CloudWatch Log Groups | Stores Apache access and error logs (7-day retention) |
+| CloudWatch Metric Filter | Counts error-level entries in the error log group |
 | CloudWatch Alarm | Fires when errors exceed 5 in a 5-minute window |
 
 All taggable resources carry the tag `application_id = app01`.
@@ -37,7 +42,8 @@ aws iam create-access-key --user-name devops-user
 | Parameter | Required | Default | Description |
 |---|---|---|---|
 | `VpcId` | Yes | — | ID of the VPC (e.g. `vpc-0abc123`) |
-| `PublicSubnetId` | Yes | — | ID of a public subnet inside that VPC |
+| `PublicSubnetId` | Yes | — | ID of a public subnet |
+| `PublicSubnetId2` | Yes | — | ID of a second public subnet in a different AZ |
 | `InstanceType` | No | `t3.micro` | EC2 instance type |
 | `LatestAmiId` | No | Amazon Linux 2023 (SSM lookup) | AMI to use |
 
@@ -50,6 +56,7 @@ aws cloudformation deploy \
   --parameter-overrides \
       VpcId=vpc-0abc123 \
       PublicSubnetId=subnet-0def456 \
+      PublicSubnetId2=subnet-0ghi789 \
   --capabilities CAPABILITY_IAM
 ```
 
@@ -67,15 +74,16 @@ aws cloudformation describe-stacks \
 
 | Output | Description |
 |---|---|
-| `PublicIp` | Public IP address of the EC2 instance |
-| `HelloWorldUrl` | Full URL to test the app (e.g. `http://<ip>/index.html`) |
+| `PublicIp` | Elastic IP address of the EC2 instance |
+| `ALBDnsName` | DNS name of the Application Load Balancer |
+| `HelloWorldUrl` | Full URL to test the app via the ALB |
 
 ## Test
 
 Open the `HelloWorldUrl` output in a browser or use curl:
 
 ```bash
-curl http://<PublicIp>/index.html
+curl http://<ALBDnsName>/index.html
 ```
 
 You should see:
@@ -86,7 +94,8 @@ Hello World
 
 ## Monitoring
 
-- Apache error logs are shipped to the CloudWatch Log Group `/webserver/<stack-name>/error_log`.
+- Apache access logs are shipped to `/webserver/<stack-name>/access_log`.
+- Apache error logs are shipped to `/webserver/<stack-name>/error_log`.
 - The CloudWatch Alarm (`WebServerErrorAlarm`) triggers when more than 5 errors are recorded in a 5-minute period.
 - Check alarm state:
 
@@ -106,14 +115,15 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 | `AWS_ACCESS_KEY_ID` | IAM user access key ID |
 | `AWS_SECRET_ACCESS_KEY` | IAM user secret access key |
 | `VPC_ID` | Target VPC ID |
-| `PUBLIC_SUBNET_ID` | Target public subnet ID |
+| `PUBLIC_SUBNET_ID` | First public subnet ID |
+| `PUBLIC_SUBNET_ID_2` | Second public subnet ID (different AZ) |
 
 ### Triggers
 
 - **Push to `main`** — automatically deploys the stack.
 - **Manual dispatch** — go to Actions → "Deploy CloudFormation Stack" → Run workflow, and choose `deploy` or `destroy`.
 
-The IAM user needs permissions for CloudFormation, EC2, IAM, CloudWatch, and Logs.
+The IAM user needs the permissions defined in `iam-policy.json`.
 
 ## Cleanup
 

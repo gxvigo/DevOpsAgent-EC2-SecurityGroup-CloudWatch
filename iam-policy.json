@@ -72,7 +72,10 @@
       ],
       "Resource": [
         "arn:aws:lambda:*:*:function:NameHandlerFunction",
-        "arn:aws:lambda:*:*:function:DevOpsAgentTriggerFunction"
+        "arn:aws:lambda:*:*:function:DevOpsAgentTriggerFunction",
+        "arn:aws:lambda:*:*:function:cwsyn-*",
+        "arn:aws:lambda:*:*:layer:cwsyn-*",
+        "arn:aws:lambda:*:*:layer:Synthetics*"
       ]
     },
     {
@@ -153,6 +156,7 @@
         "ec2:TerminateInstances",
         "ec2:StopInstances",
         "ec2:StartInstances",
+        "ec2:ModifyInstanceAttribute",
         "ec2:CreateSecurityGroup",
         "ec2:DeleteSecurityGroup",
         "ec2:AuthorizeSecurityGroupIngress",
@@ -199,6 +203,60 @@
         "elasticloadbalancing:DescribeTags"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "SyntheticsManagement",
+      "Effect": "Allow",
+      "Action": [
+        "synthetics:CreateCanary",
+        "synthetics:UpdateCanary",
+        "synthetics:DeleteCanary",
+        "synthetics:GetCanary",
+        "synthetics:DescribeCanaries",
+        "synthetics:StartCanary",
+        "synthetics:StopCanary",
+        "synthetics:TagResource",
+        "synthetics:UntagResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CanaryS3Bucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:GetBucketPolicy",
+        "s3:PutLifecycleConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:PutBucketTagging",
+        "s3:GetBucketTagging",
+        "s3:GetBucketLocation",
+        "s3:ListBucket",
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:ListBucketVersions",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": [
+        "arn:aws:s3:::DevOpsAgent-EC2-webserver-GitHub-canary-artifacts-*",
+        "arn:aws:s3:::DevOpsAgent-EC2-webserver-GitHub-canary-artifacts-*/*",
+        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary-artifacts-*",
+        "arn:aws:s3:::devopsagent-ec2-webserver-github-canary-artifacts-*/*"
+      ]
+    },
+    {
+      "Sid": "CanaryLambdaLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy"
+      ],
+      "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/cwsyn-*"
     }
   ]
 }
