@@ -1,6 +1,8 @@
-# Hello World Webserver — CloudFormation
+# app01 — Hello World Webserver
 
-A single CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a "Hello World" page, and monitors error rates with CloudWatch.
+> Source: [https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/](https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/)
+
+A CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a personalizable "Hello" page, and monitors availability with a CloudWatch Synthetics canary.
 
 ## Architecture
 
@@ -15,8 +17,9 @@ A single CloudFormation template that deploys an Apache webserver on EC2 behind 
 | Elastic IP | Static public IP attached to the EC2 instance |
 | IAM Role + Instance Profile | Grants the instance permission to push logs to CloudWatch |
 | CloudWatch Log Groups | Stores Apache access and error logs (7-day retention) |
-| CloudWatch Metric Filter | Counts error-level entries in the error log group |
-| CloudWatch Alarm | Fires when errors exceed 5 in a 5-minute window |
+| Synthetics Canary | Hits the ALB endpoint every 1 minute and verifies a 200 response |
+| CloudWatch Alarm | Fires when the canary success rate drops below 100% |
+| S3 Bucket | Stores canary artifacts (auto-expires after 7 days) |
 
 All taggable resources carry the tag `application_id = app01`.
 
@@ -80,23 +83,27 @@ aws cloudformation describe-stacks \
 
 ## Test
 
-Open the `HelloWorldUrl` output in a browser or use curl:
+The page accepts an optional `name` query parameter to personalize the greeting. It defaults to "World" if not provided.
 
 ```bash
+# Default greeting
 curl http://<ALBDnsName>/index.html
+# → Hello World
+
+# Custom greeting
+curl http://<ALBDnsName>/index.html?name=Kiro
+# → Hello Kiro
 ```
 
-You should see:
-
-```
-Hello World
-```
+Open in a browser:
+- `http://<ALBDnsName>/index.html` → Hello World
+- `http://<ALBDnsName>/index.html?name=Alice` → Hello Alice
 
 ## Monitoring
 
 - Apache access logs are shipped to `/webserver/<stack-name>/access_log`.
 - Apache error logs are shipped to `/webserver/<stack-name>/error_log`.
-- A CloudWatch Synthetics canary (`webserver-heartbeat`) hits the ALB endpoint every 5 minutes and verifies a 200 response.
+- A CloudWatch Synthetics canary (`webserver-heartbeat`) hits the ALB endpoint every 1 minute and verifies a 200 response.
 - The `CanaryFailedAlarm` fires when the canary success rate drops below 100%.
 - Check canary status:
 
