@@ -52,7 +52,7 @@ Resources:
           systemctl start httpd
           echo "<html><body><h1>Hello World</h1></body></html>" > /var/www/html/index.html
 
-          # Install and configure the CloudWatch agent to push Apache error logs
+          # Install and configure the CloudWatch agent to push Apache logs
           yum install -y amazon-cloudwatch-agent
           cat <<'EOF' > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
           {
@@ -63,6 +63,11 @@ Resources:
                     {
                       "file_path": "/var/log/httpd/error_log",
                       "log_group_name": "${WebServerErrorLogGroup}",
+                      "log_stream_name": "{instance_id}"
+                    },
+                    {
+                      "file_path": "/var/log/httpd/access_log",
+                      "log_group_name": "${WebServerAccessLogGroup}",
                       "log_stream_name": "{instance_id}"
                     }
                   ]
@@ -114,6 +119,15 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /webserver/${AWS::StackName}/error_log
+      RetentionInDays: 7
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  WebServerAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /webserver/${AWS::StackName}/access_log
       RetentionInDays: 7
       Tags:
         - Key: application_id
