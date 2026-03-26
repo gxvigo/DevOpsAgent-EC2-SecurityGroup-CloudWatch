@@ -8,6 +8,9 @@ Parameters:
   PublicSubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: Public subnet ID for the EC2 instance
+  PublicSubnetId2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Second public subnet in a different AZ (required by ALB)
   InstanceType:
     Type: String
     Default: t3.micro
@@ -21,7 +24,7 @@ Resources:
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow HTTP access on port 80
+      GroupDescription: Allow HTTP from ALB only
       VpcId: !Ref VpcId
       Tags:
         - Key: application_id
@@ -34,7 +37,63 @@ Resources:
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
+      SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP access to ALB
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  ALBSGIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
       CidrIp: 0.0.0.0/0
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets:
+        - !Ref PublicSubnetId
+        - !Ref PublicSubnetId2
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: instance
+      Targets:
+        - Id: !Ref WebServerInstance
+      HealthCheckPath: /index.html
+      Tags:
+        - Key: application_id
+          Value: app01
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
 
   WebServerInstance:
     Type: AWS::EC2::Instance
@@ -164,6 +223,9 @@ Outputs:
   PublicIp:
     Description: Public IP address of the EC2 instance
     Value: !Ref WebServerEIP
+  ALBDnsName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
   HelloWorldUrl:
-    Description: URL to test the Hello World app
-    Value: !Sub http://${WebServerEIP}/index.html
+    Description: URL to test the Hello World app via ALB
+    Value: !Sub http://${ApplicationLoadBalancer.DNSName}/index.html

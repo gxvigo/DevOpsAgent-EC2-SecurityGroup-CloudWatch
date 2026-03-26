@@ -17,9 +17,20 @@ All taggable resources carry the tag `application_id = app01`.
 
 ## Prerequisites
 
-- AWS CLI installed and configured with credentials that can create IAM roles, EC2 instances, and CloudWatch resources.
-- An existing VPC with a public subnet (the subnet must auto-assign public IPs or have an associated Elastic IP).
-- The public subnet's route table must have a route to an Internet Gateway so the instance is reachable.
+- An IAM user (or role) with the permissions defined in `iam-policy.json` must be created before deploying the stack. To create the user and attach the policy:
+
+```bash
+aws iam create-user --user-name devops-user
+aws iam put-user-policy \
+  --user-name devops-user \
+  --policy-name DevOpsAgentDeployPolicy \
+  --policy-document file://iam-policy.json
+aws iam create-access-key --user-name devops-user
+```
+
+- AWS CLI installed and configured with the above user's credentials.
+- An existing VPC with two public subnets in different Availability Zones (required by the ALB).
+- Both subnets' route tables must have a route to an Internet Gateway.
 
 ## Parameters
 
