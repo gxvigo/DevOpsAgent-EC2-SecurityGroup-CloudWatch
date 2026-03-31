@@ -9,7 +9,7 @@ A CloudFormation template that deploys an Apache webserver on EC2 behind an Appl
 | Resource | Purpose |
 |---|---|
 | Application Load Balancer | Internet-facing ALB that routes HTTP traffic to the EC2 instance |
-| ALB Security Group | Allows inbound TCP port 80 from the internet |
+| ALB Security Group | Allows inbound TCP port 80 from the internet (`0.0.0.0/0`) |
 | ALB Target Group | Registers the EC2 instance with health checks on `/index.html` |
 | ALB Listener | Listens on port 80 and forwards to the target group |
 | EC2 Instance | Runs Apache httpd in a private subnet, serves `index.html` |

@@ -2,7 +2,8 @@
 
 This demo walks through a scenario where a code change breaks the webserver, and the DevOps Agent investigates the issue automatically.
 
-> Source: [https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/](https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/)
+> Source:  https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/
+
 
 ## Prerequisites
 
@@ -26,7 +27,7 @@ http://<ALBDnsName>/index.html?name=Demo
 
 ### 2. Introduce a breaking change in Kiro
 
-Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resource. Change the CIDR from `0.0.0.0/0` to `1.0.0.0/0`:
+Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resource. Change the CIDR from `0.0.0.0/0` to `2.0.0.0/8`:
 
 ```yaml
   ALBSGIngress:
@@ -36,10 +37,12 @@ Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resourc
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
-      CidrIp: 1.0.0.0/0    # <-- changed from 0.0.0.0/0
+      CidrIp: 2.0.0.0/8    # <-- changed from 0.0.0.0/0
 ```
 
-This restricts the ALB security group to only allow traffic from the `1.0.0.0/0` range, effectively blocking most users.
+This restricts the ALB security group to only allow traffic from the `2.0.0.0/8` range, effectively blocking most users.
+
+> Note: use a subnet mask like `/8` or smaller. A `/0` mask (e.g. `2.0.0.0/0`) covers all IPs and AWS will normalize it to `0.0.0.0/0`, which won't actually restrict anything.
 
 ### 3. Commit and push
 
@@ -69,7 +72,7 @@ Refresh the ALB URL in the browser:
 http://<ALBDnsName>/index.html
 ```
 
-The page should now time out or be unreachable, since your IP is no longer in the `1.0.0.0/0` range.
+The page should now time out or be unreachable, since your IP is no longer in the `0.0.0.0/0` range.
 
 ### 6. Start an investigation from DevOps Agent Space
 
@@ -87,5 +90,7 @@ Revert the change to restore access:
 ```yaml
       CidrIp: 0.0.0.0/0
 ```
+
+> Note: when restricting the CIDR for testing, use a subnet mask like `/8` or smaller (e.g. `2.0.0.0/8`). A `/0` mask covers all IPs and AWS will normalize any address with `/0` to `0.0.0.0/0`.
 
 Commit, push, and let the GitHub Action redeploy.

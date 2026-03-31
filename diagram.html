@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Component Diagram – cloudformation-webserver.yaml</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      padding: 32px;
+      color: #1a1a2e;
+    }
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── layout ── */
+    .canvas {
+      position: relative;
+      width: 1060px;
+      height: 680px;
+      background: #fff;
+      border: 1px solid #dde1e7;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      overflow: visible;
+    }
+
+    /* ── lanes ── */
+    .lane {
+      position: absolute;
+      border: 2px dashed;
+      border-radius: 10px;
+      padding: 8px 10px 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .lane-internet  { left:20px;  top:20px;  width:100px; height:640px; border-color:#aaa;    color:#888;    background:#fafafa; }
+    .lane-public    { left:140px; top:20px;  width:370px; height:640px; border-color:#e8a838; color:#c87d10; background:#fffdf5; }
+    .lane-private   { left:530px; top:20px;  width:260px; height:640px; border-color:#3b82f6; color:#1d55b3; background:#f0f6ff; }
+    .lane-aws       { left:810px; top:20px;  width:230px; height:640px; border-color:#7c3aed; color:#5b21b6; background:#f9f5ff; }
+
+    .lane-label { margin-bottom: 6px; }
+
+    /* ── boxes ── */
+    .box {
+      position: absolute;
+      border-radius: 8px;
+      border: 1.5px solid;
+      padding: 8px 10px;
+      font-size: 0.72rem;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .box .icon { font-size: 1.4rem; margin-bottom: 4px; }
+    .box .name { font-weight: 700; font-size: 0.72rem; }
+    .box .sub  { font-size: 0.62rem; color: #666; margin-top: 2px; }
+
+    /* colours by service */
+    .c-internet { background:#f5f5f5; border-color:#999; }
+    .c-alb      { background:#fff3e0; border-color:#e8a838; }
+    .c-sg       { background:#fff8e1; border-color:#f59e0b; }
+    .c-ec2      { background:#e3f2fd; border-color:#3b82f6; }
+    .c-iam      { background:#fce4ec; border-color:#e91e63; }
+    .c-logs     { background:#e8f5e9; border-color:#43a047; }
+    .c-canary   { background:#f3e5f5; border-color:#9c27b0; }
+    .c-s3       { background:#fff9c4; border-color:#f9a825; }
+    .c-alarm    { background:#fbe9e7; border-color:#d84315; }
+    .c-lambda   { background:#ede7f6; border-color:#673ab7; }
+
+    /* ── SVG arrows overlay ── */
+    svg.arrows {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .arrow { fill: none; stroke-width: 1.8; marker-end: url(#arrowhead); }
+    .a-http   { stroke: #e8a838; }
+    .a-log    { stroke: #43a047; stroke-dasharray: 5,3; }
+    .a-mon    { stroke: #9c27b0; stroke-dasharray: 5,3; }
+    .a-iam    { stroke: #e91e63; stroke-dasharray: 5,3; }
+    .a-lambda { stroke: #673ab7; stroke-dasharray: 5,3; }
+
+    /* legend */
+    .legend {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.62rem;
+      color: #555;
+    }
+    .legend-row { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+    .leg-line { width:24px; height:2px; }
+    .leg-solid  { background:#e8a838; }
+    .leg-green  { background:#43a047; border-top: 2px dashed #43a047; height:0; }
+    .leg-purple { background:#9c27b0; border-top: 2px dashed #9c27b0; height:0; }
+    .leg-pink   { background:#e91e63; border-top: 2px dashed #e91e63; height:0; }
+  </style>
+</head>
+<body>
+<h1>Component Diagram — cloudformation-webserver.yaml</h1>
+
+<div class="canvas" id="canvas">
+
+  <!-- ── Lanes ── -->
+  <div class="lane lane-internet"><div class="lane-label">Internet</div></div>
+  <div class="lane lane-public"><div class="lane-label">Public Subnets</div></div>
+  <div class="lane lane-private"><div class="lane-label">Private Subnet</div></div>
+  <div class="lane lane-aws"><div class="lane-label">AWS Managed Services</div></div>
+
+  <!-- ── INTERNET ── -->
+  <div class="box c-internet" id="b-user" style="left:30px;top:280px;width:80px;">
+    <div class="icon">🌐</div>
+    <div class="name">Client</div>
+    <div class="sub">HTTP :80</div>
+  </div>
+
+  <!-- ── PUBLIC (ALB lane) ── -->
+  <div class="box c-sg" id="b-albsg" style="left:155px;top:120px;width:140px;">
+    <div class="icon">🔒</div>
+    <div class="name">ALBSecurityGroup</div>
+    <div class="sub">Inbound: TCP 80<br>from 2.0.0.0/0</div>
+  </div>
+
+  <div class="box c-alb" id="b-alb" style="left:155px;top:260px;width:140px;">
+    <div class="icon">⚖️</div>
+    <div class="name">ApplicationLoadBalancer</div>
+    <div class="sub">internet-facing<br>PublicSubnet1 + 2</div>
+  </div>
+
+  <div class="box c-alb" id="b-listener" style="left:155px;top:400px;width:140px;">
+    <div class="icon">👂</div>
+    <div class="name">ALBListener</div>
+    <div class="sub">HTTP :80 → forward</div>
+  </div>
+
+  <div class="box c-alb" id="b-tg" style="left:320px;top:400px;width:155px;">
+    <div class="icon">🎯</div>
+    <div class="name">ALBTargetGroup</div>
+    <div class="sub">HTTP :80<br>health: /index.html</div>
+  </div>
+
+  <!-- ── PRIVATE (EC2 lane) ── -->
+  <div class="box c-sg" id="b-websg" style="left:545px;top:120px;width:140px;">
+    <div class="icon">🔒</div>
+    <div class="name">WebServerSG</div>
+    <div class="sub">Inbound: TCP 80<br>from ALBSecurityGroup</div>
+  </div>
+
+  <div class="box c-ec2" id="b-ec2" style="left:545px;top:290px;width:140px;">
+    <div class="icon">🖥️</div>
+    <div class="name">WebServerInstance</div>
+    <div class="sub">t3.micro · Amazon Linux 2023<br>Apache httpd · PrivateSubnet</div>
+  </div>
+
+  <div class="box c-iam" id="b-iam" style="left:545px;top:490px;width:140px;">
+    <div class="icon">🪪</div>
+    <div class="name">InstanceRole</div>
+    <div class="sub">CloudWatchAgentServerPolicy<br>AmazonSSMManagedInstanceCore</div>
+  </div>
+
+  <!-- ── AWS MANAGED SERVICES ── -->
+  <div class="box c-logs" id="b-logA" style="left:825px;top:60px;width:195px;">
+    <div class="icon">📋</div>
+    <div class="name">WebServerAccessLogGroup</div>
+    <div class="sub">/webserver/{stack}/access_log<br>Retention: 7 days</div>
+  </div>
+
+  <div class="box c-logs" id="b-logE" style="left:825px;top:180px;width:195px;">
+    <div class="icon">📋</div>
+    <div class="name">WebServerErrorLogGroup</div>
+    <div class="sub">/webserver/{stack}/error_log<br>Retention: 7 days</div>
+  </div>
+
+  <div class="box c-canary" id="b-canary" style="left:825px;top:300px;width:195px;">
+    <div class="icon">🐦</div>
+    <div class="name">HeartbeatCanary</div>
+    <div class="sub">syn-nodejs-puppeteer-9.1<br>rate(1 minute) → /index.html</div>
+  </div>
+
+  <div class="box c-s3" id="b-s3" style="left:825px;top:415px;width:195px;">
+    <div class="icon">🪣</div>
+    <div class="name">CanaryArtifactBucket</div>
+    <div class="sub">S3 · artifacts<br>Expire after 7 days</div>
+  </div>
+
+  <div class="box c-alarm" id="b-alarm" style="left:825px;top:510px;width:195px;">
+    <div class="icon">🚨</div>
+    <div class="name">CanaryFailedAlarm</div>
+    <div class="sub">SuccessPercent &lt; 100<br>Period: 5 min · breaching</div>
+  </div>
+
+  <div class="box c-lambda" id="b-lambda" style="left:825px;top:600px;width:195px;">
+    <div class="icon">λ</div>
+    <div class="name">EmptyBucketFunction</div>
+    <div class="sub">Custom resource<br>empties S3 on stack delete</div>
+  </div>
+
+  <!-- ── ARROWS ── -->
+  <svg class="arrows">
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#888" />
+      </marker>
+      <marker id="arrowhead-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#43a047" />
+      </marker>
+      <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#9c27b0" />
+      </marker>
+      <marker id="arrowhead-pink" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#e91e63" />
+      </marker>
+      <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#e8a838" />
+      </marker>
+    </defs>
+
+    <!-- Client → ALB  HTTP :80 -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
+      d="M110,310 L153,310" />
+
+    <!-- ALB SG enforces on ALB (dashed box relationship) -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)" stroke-dasharray="4,3"
+      d="M225,162 L225,258" />
+
+    <!-- ALB → Listener -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
+      d="M225,332 L225,398" />
+
+    <!-- Listener → TargetGroup -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
+      d="M297,440 L318,440" />
+
+    <!-- TargetGroup → EC2 -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
+      d="M477,440 L510,440 L510,360 L543,360" />
+
+    <!-- WebSG enforces on EC2 (dashed) -->
+    <path class="arrow a-http" marker-end="url(#arrowhead-orange)" stroke-dasharray="4,3"
+      d="M615,162 L615,288" />
+
+    <!-- EC2 → AccessLogGroup -->
+    <path class="arrow a-log" marker-end="url(#arrowhead-green)"
+      d="M687,320 L750,320 L750,92 L823,92" />
+
+    <!-- EC2 → ErrorLogGroup -->
+    <path class="arrow a-log" marker-end="url(#arrowhead-green)"
+      d="M687,340 L760,340 L760,208 L823,208" />
+
+    <!-- IAM Role → EC2 (attached) -->
+    <path class="arrow a-iam" marker-end="url(#arrowhead-pink)"
+      d="M615,488 L615,432" />
+
+    <!-- Canary → ALB (monitors) -->
+    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
+      d="M823,330 L430,330 L430,310 L297,310" />
+
+    <!-- Canary → S3 (artifacts) -->
+    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
+      d="M922,398 L922,413" />
+
+    <!-- Alarm monitors Canary -->
+    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
+      d="M922,508 L922,488 L1020,488 L1020,538 L1023,538" />
+
+    <!-- Lambda → S3 (empties on delete) -->
+    <path class="arrow a-lambda" marker-end="url(#arrowhead)" stroke="#673ab7"
+      d="M922,598 L922,558" />
+  </svg>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-row"><div class="leg-line leg-solid"></div> HTTP traffic</div>
+    <div class="legend-row"><div class="leg-line leg-green"></div> Log shipping</div>
+    <div class="legend-row"><div class="leg-line leg-purple"></div> Monitoring / artifacts</div>
+    <div class="legend-row"><div class="leg-line leg-pink"></div> IAM attachment</div>
+  </div>
+
+</div>
+</body>
+</html>
