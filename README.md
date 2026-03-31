@@ -38,7 +38,7 @@ aws iam create-access-key --user-name devops-user
 - AWS CLI installed and configured with the above user's credentials.
 - An existing VPC with two public subnets in different Availability Zones (required by the ALB) and a private subnet for the EC2 instance.
 - The public subnets' route tables must have a route to an Internet Gateway.
-- The private subnet must have a route to a NAT Gateway so the instance can reach the internet for package installs and CloudWatch agent setup.
+- The private subnet must have a route to a NAT Gateway. This is required because the EC2 UserData script needs internet access to install packages (`httpd`, `amazon-cloudwatch-agent`) and the CloudWatch agent needs outbound connectivity to push logs. Without a NAT Gateway, the instance will fail to bootstrap and the ALB will return 502.
 
 ## Parameters
 
