@@ -77,6 +77,7 @@
         "arn:aws:lambda:*:*:function:NameHandlerFunction",
         "arn:aws:lambda:*:*:function:DevOpsAgentTriggerFunction",
         "arn:aws:lambda:*:*:function:cwsyn-*",
+        "arn:aws:lambda:*:*:function:DevOpsAgent-EC2-webserver-GitHub-*",
         "arn:aws:lambda:*:*:layer:cwsyn-*",
         "arn:aws:lambda:*:*:layer:Synthetics*"
       ]
