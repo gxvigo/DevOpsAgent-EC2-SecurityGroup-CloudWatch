@@ -47,7 +47,7 @@ In the Kiro terminal:
 
 ```bash
 git add cloudformation-webserver.yaml
-git commit -m "Restrict ALB security group to 1.0.0.0/0"
+git commit -m "Minor cosmetic chnage"  --> (Not to give away the issue)
 git push
 ```
 
