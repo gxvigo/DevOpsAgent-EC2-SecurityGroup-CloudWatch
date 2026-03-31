@@ -201,6 +201,7 @@
         "elasticloadbalancing:DeleteListener",
         "elasticloadbalancing:DescribeListeners",
         "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:ModifyTargetGroup",
         "elasticloadbalancing:AddTags",
         "elasticloadbalancing:RemoveTags",
         "elasticloadbalancing:DescribeTags"

@@ -173,6 +173,8 @@ Resources:
             -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
       IamInstanceProfile: !Ref InstanceProfile
       Tags:
+        - Key: Name
+          Value: webserver
         - Key: application_id
           Value: app01
 
