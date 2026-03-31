@@ -24,14 +24,18 @@ All taggable resources carry the tag `application_id = app01`.
 
 ## Prerequisites
 
-- An IAM user (or role) with the permissions defined in `iam-policy.json` must be created before deploying the stack. To create the user and attach the policy:
+- An IAM user (or role) with the permissions defined in `iam-policy-infra.json` and `iam-policy-monitoring.json` must be created before deploying the stack. To create the user and attach both policies:
 
 ```bash
 aws iam create-user --user-name devops-user
 aws iam put-user-policy \
   --user-name devops-user \
-  --policy-name DevOpsAgentDeployPolicy \
-  --policy-document file://iam-policy.json
+  --policy-name devops-policy-infra \
+  --policy-document file://iam-policy-infra.json
+aws iam put-user-policy \
+  --user-name devops-user \
+  --policy-name devops-policy-monitoring \
+  --policy-document file://iam-policy-monitoring.json
 aws iam create-access-key --user-name devops-user
 ```
 
@@ -135,7 +139,7 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 - **Push to `main`** — automatically deploys the stack.
 - **Manual dispatch** — go to Actions → "Deploy CloudFormation Stack" → Run workflow, and choose `deploy` or `destroy`.
 
-The IAM user needs the permissions defined in `iam-policy.json`.
+The IAM user needs the permissions defined in `iam-policy-infra.json` and `iam-policy-monitoring.json`.
 
 ## Cleanup
 

@@ -26,19 +26,17 @@ http://<ALBDnsName>/index.html?name=Demo
 
 ### 2. Introduce a breaking change in Kiro
 
-Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSecurityGroup` resource. Change the CIDR from `0.0.0.0/0` to `1.0.0.0/0`:
+Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resource. Change the CIDR from `0.0.0.0/0` to `1.0.0.0/0`:
 
 ```yaml
-  ALBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  ALBSGIngress:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupDescription: Allow HTTP access to ALB
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 1.0.0.0/0    # <-- changed from 0.0.0.0/0
+      GroupId: !GetAtt ALBSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 1.0.0.0/0    # <-- changed from 0.0.0.0/0
 ```
 
 This restricts the ALB security group to only allow traffic from the `1.0.0.0/0` range, effectively blocking most users.

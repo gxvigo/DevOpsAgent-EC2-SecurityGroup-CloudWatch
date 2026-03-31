@@ -47,14 +47,19 @@ Resources:
     Properties:
       GroupDescription: Allow HTTP access to ALB
       VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 2.0.0.0/0
+      SecurityGroupIngress: []
       Tags:
         - Key: application_id
           Value: app01
+
+  ALBSGIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ALBSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 1.0.0.0/0
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
