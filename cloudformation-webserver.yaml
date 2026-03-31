@@ -11,6 +11,9 @@ Parameters:
   PublicSubnetId2:
     Type: AWS::EC2::Subnet::Id
     Description: Second public subnet in a different AZ (required by ALB)
+  PrivateSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private subnet ID for the EC2 instance
   InstanceType:
     Type: String
     Default: t3.micro
@@ -100,7 +103,7 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       ImageId: !Ref LatestAmiId
-      SubnetId: !Ref PublicSubnetId
+      SubnetId: !Ref PrivateSubnetId
       SecurityGroupIds:
         - !Ref WebServerSecurityGroup
       UserData:
@@ -199,15 +202,6 @@ Resources:
     Properties:
       Roles:
         - !Ref InstanceRole
-
-  WebServerEIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      InstanceId: !Ref WebServerInstance
-      Tags:
-        - Key: application_id
-          Value: app01
 
   WebServerErrorLogGroup:
     Type: AWS::Logs::LogGroup
@@ -339,9 +333,9 @@ Resources:
           Value: app01
 
 Outputs:
-  PublicIp:
-    Description: Public IP address of the EC2 instance
-    Value: !Ref WebServerEIP
+  PrivateIp:
+    Description: Private IP address of the EC2 instance
+    Value: !GetAtt WebServerInstance.PrivateIp
   ALBDnsName:
     Description: DNS name of the Application Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName

@@ -12,9 +12,8 @@ A CloudFormation template that deploys an Apache webserver on EC2 behind an Appl
 | ALB Security Group | Allows inbound TCP port 80 from the internet |
 | ALB Target Group | Registers the EC2 instance with health checks on `/index.html` |
 | ALB Listener | Listens on port 80 and forwards to the target group |
-| EC2 Instance | Runs Apache httpd, serves `index.html` |
+| EC2 Instance | Runs Apache httpd in a private subnet, serves `index.html` |
 | EC2 Security Group | Allows inbound TCP port 80 from the ALB security group only |
-| Elastic IP | Static public IP attached to the EC2 instance |
 | IAM Role + Instance Profile | Grants the instance permission to push logs to CloudWatch |
 | CloudWatch Log Groups | Stores Apache access and error logs (7-day retention) |
 | Synthetics Canary | Hits the ALB endpoint every 1 minute and verifies a 200 response |
@@ -37,8 +36,9 @@ aws iam create-access-key --user-name devops-user
 ```
 
 - AWS CLI installed and configured with the above user's credentials.
-- An existing VPC with two public subnets in different Availability Zones (required by the ALB).
-- Both subnets' route tables must have a route to an Internet Gateway.
+- An existing VPC with two public subnets in different Availability Zones (required by the ALB) and a private subnet for the EC2 instance.
+- The public subnets' route tables must have a route to an Internet Gateway.
+- The private subnet must have a route to a NAT Gateway so the instance can reach the internet for package installs and CloudWatch agent setup.
 
 ## Parameters
 
@@ -47,6 +47,7 @@ aws iam create-access-key --user-name devops-user
 | `VpcId` | Yes | — | ID of the VPC (e.g. `vpc-0abc123`) |
 | `PublicSubnetId` | Yes | — | ID of a public subnet |
 | `PublicSubnetId2` | Yes | — | ID of a second public subnet in a different AZ |
+| `PrivateSubnetId` | Yes | — | ID of a private subnet for the EC2 instance |
 | `InstanceType` | No | `t3.micro` | EC2 instance type |
 | `LatestAmiId` | No | Amazon Linux 2023 (SSM lookup) | AMI to use |
 
@@ -60,6 +61,7 @@ aws cloudformation deploy \
       VpcId=vpc-0abc123 \
       PublicSubnetId=subnet-0def456 \
       PublicSubnetId2=subnet-0ghi789 \
+      PrivateSubnetId=subnet-0priv123 \
   --capabilities CAPABILITY_IAM
 ```
 
@@ -77,7 +79,7 @@ aws cloudformation describe-stacks \
 
 | Output | Description |
 |---|---|
-| `PublicIp` | Elastic IP address of the EC2 instance |
+| `PrivateIp` | Private IP address of the EC2 instance |
 | `ALBDnsName` | DNS name of the Application Load Balancer |
 | `HelloWorldUrl` | Full URL to test the app via the ALB |
 
@@ -124,6 +126,9 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 | `VPC_ID` | Target VPC ID |
 | `PUBLIC_SUBNET_ID` | First public subnet ID |
 | `PUBLIC_SUBNET_ID_2` | Second public subnet ID (different AZ) |
+| `PRIVATE_SUBNET_ID` | Private subnet ID for the EC2 instance |
+
+
 
 ### Triggers
 
