@@ -12,6 +12,7 @@ This demo walks through a scenario where a code change breaks the webserver, and
   ```
   http://<ALBDnsName>/index.html
   ```
+- Before running the demo, verify that the ALB security group CIDR includes your public IP address. Find your IP at [https://www.whatismyip.com/](https://www.whatismyip.com/) and confirm it falls within the `0.0.0.0/0` range (which allows all IPs). If the CIDR has been previously restricted, update `ALBSGIngress` in the template to include your IP (e.g. `150.107.175.244/32`) or reset it to `0.0.0.0/0`, then deploy.
 - DevOps Agent Space is configured in the same AWS account where the stack is deployed.
 
 ## Demo Steps

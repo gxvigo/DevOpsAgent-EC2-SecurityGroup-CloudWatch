@@ -22,13 +22,6 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
     Description: Latest Amazon Linux 2023 AMI
-  CertificateArn:
-    Type: String
-    Default: ''
-    Description: ACM certificate ARN for HTTPS (leave empty for HTTP only)
-
-Conditions:
-  HasCertificate: !Not [!Equals [!Ref CertificateArn, '']]
 
 Resources:
   WebServerSecurityGroup:
@@ -66,17 +59,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
-      CidrIp: 2.0.0.0/8
-
-  ALBSGIngressHTTPS:
-    Type: AWS::EC2::SecurityGroupIngress
-    Condition: HasCertificate
-    Properties:
-      GroupId: !GetAtt ALBSecurityGroup.GroupId
-      IpProtocol: tcp
-      FromPort: 443
-      ToPort: 443
-      CidrIp: 2.0.0.0/8
+      CidrIp: 0.0.0.0/0
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -112,28 +95,6 @@ Resources:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: 80
       Protocol: HTTP
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref ALBTargetGroup
-        # - !If
-        #   - HasCertificate
-        #   - Type: redirect
-        #     RedirectConfig:
-        #       Protocol: HTTPS
-        #       Port: '443'
-        #       StatusCode: HTTP_301
-        #   - Type: forward
-        #     TargetGroupArn: !Ref ALBTargetGroup
-
-  ALBListenerHTTPS:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Condition: HasCertificate
-    Properties:
-      LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: 443
-      Protocol: HTTPS
-      Certificates:
-        - CertificateArn: !Ref CertificateArn
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
@@ -450,7 +411,4 @@ Outputs:
     Value: !GetAtt ApplicationLoadBalancer.DNSName
   HelloWorldUrl:
     Description: URL to test the Hello World app via ALB
-    Value: !If
-      - HasCertificate
-      - !Sub https://${ApplicationLoadBalancer.DNSName}/index.html
-      - !Sub http://${ApplicationLoadBalancer.DNSName}/index.html
+    Value: !Sub http://${ApplicationLoadBalancer.DNSName}/index.html

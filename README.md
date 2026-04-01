@@ -43,7 +43,6 @@ aws iam create-access-key --user-name devops-user
 - An existing VPC with two public subnets in different Availability Zones (required by the ALB) and a private subnet for the EC2 instance.
 - The public subnets' route tables must have a route to an Internet Gateway.
 - The private subnet must have a route to a NAT Gateway. This is required because the EC2 UserData script needs internet access to install packages (`httpd`, `amazon-cloudwatch-agent`) and the CloudWatch agent needs outbound connectivity to push logs. Without a NAT Gateway, the instance will fail to bootstrap and the ALB will return 502.
-- (Optional) An ACM certificate for HTTPS. If provided, the ALB will terminate TLS on port 443 and redirect HTTP to HTTPS. See [Appendix: Creating an ACM Certificate](#appendix-creating-an-acm-certificate) for instructions.
 
 ## Parameters
 
@@ -55,7 +54,6 @@ aws iam create-access-key --user-name devops-user
 | `PrivateSubnetId` | Yes | — | ID of a private subnet for the EC2 instance |
 | `InstanceType` | No | `t3.micro` | EC2 instance type |
 | `LatestAmiId` | No | Amazon Linux 2023 (SSM lookup) | AMI to use |
-| `CertificateArn` | No | (empty) | ACM certificate ARN for HTTPS |
 
 ## Deploy
 
@@ -68,21 +66,6 @@ aws cloudformation deploy \
       PublicSubnetId=subnet-0def456 \
       PublicSubnetId2=subnet-0ghi789 \
       PrivateSubnetId=subnet-0priv123 \
-  --capabilities CAPABILITY_IAM
-```
-
-To deploy with HTTPS:
-
-```bash
-aws cloudformation deploy \
-  --template-file cloudformation-webserver.yaml \
-  --stack-name DevOpsAgent-EC2-webserver-GitHub \
-  --parameter-overrides \
-      VpcId=vpc-0abc123 \
-      PublicSubnetId=subnet-0def456 \
-      PublicSubnetId2=subnet-0ghi789 \
-      PrivateSubnetId=subnet-0priv123 \
-      CertificateArn=arn:aws:acm:us-east-1:123456789012:certificate/xxx \
   --capabilities CAPABILITY_IAM
 ```
 
@@ -148,7 +131,6 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 | `PUBLIC_SUBNET_ID` | First public subnet ID |
 | `PUBLIC_SUBNET_ID_2` | Second public subnet ID (different AZ) |
 | `PRIVATE_SUBNET_ID` | Private subnet ID for the EC2 instance |
-| `CERTIFICATE_ARN` | (Optional) ACM certificate ARN for HTTPS |
 
 
 
@@ -164,91 +146,3 @@ The IAM user needs the permissions defined in `iam-policy-infra.json` and `iam-p
 ```bash
 aws cloudformation delete-stack --stack-name DevOpsAgent-EC2-webserver-GitHub
 ```
-
-## Appendix: Creating an ACM Certificate
-
-If your domain is hosted in Route 53 in a different AWS account than the ALB, follow these steps. The certificate must be created in the ALB account, and the DNS validation record must be added in the Route 53 account.
-
-### 1. Request the certificate (ALB account)
-
-```bash
-aws acm request-certificate \
-  --domain-name app.yourdomain.com \
-  --validation-method DNS \
-  --region us-east-1
-```
-
-Output:
-```json
-{
-  "CertificateArn": "arn:aws:acm:us-east-1:<ACCOUNT_ID>:certificate/<CERTIFICATE_ID>"
-}
-```
-
-### 2. Get the DNS validation record (ALB account)
-
-```bash
-aws acm describe-certificate \
-  --certificate-arn arn:aws:acm:us-east-1:<ACCOUNT_ID>:certificate/<CERTIFICATE_ID> \
-  --query "Certificate.DomainValidationOptions[0].ResourceRecord" \
-  --region us-east-1
-```
-
-Output:
-```json
-{
-  "Name": "_abc123.app.yourdomain.com.",
-  "Type": "CNAME",
-  "Value": "_def456.acm-validations.aws."
-}
-```
-
-### 3. Add the validation CNAME record (Route 53 account)
-
-```bash
-aws route53 change-resource-record-sets \
-  --hosted-zone-id <HOSTED_ZONE_ID> \
-  --change-batch '{
-    "Changes": [{
-      "Action": "UPSERT",
-      "ResourceRecordSet": {
-        "Name": "_abc123.app.yourdomain.com.",
-        "Type": "CNAME",
-        "TTL": 300,
-        "ResourceRecords": [{"Value": "_def456.acm-validations.aws."}]
-      }
-    }]
-  }'
-```
-
-### 4. Wait for validation (ALB account)
-
-```bash
-aws acm wait certificate-validated \
-  --certificate-arn arn:aws:acm:us-east-1:<ACCOUNT_ID>:certificate/<CERTIFICATE_ID> \
-  --region us-east-1
-```
-
-No output means the certificate is validated and ready to use. This typically takes a few minutes.
-
-### 5. (Optional) Add a DNS alias for the ALB (Route 53 account)
-
-To access the app via your domain instead of the ALB DNS name, add a CNAME record pointing to the ALB:
-
-```bash
-aws route53 change-resource-record-sets \
-  --hosted-zone-id <HOSTED_ZONE_ID> \
-  --change-batch '{
-    "Changes": [{
-      "Action": "UPSERT",
-      "ResourceRecordSet": {
-        "Name": "app.yourdomain.com.",
-        "Type": "CNAME",
-        "TTL": 300,
-        "ResourceRecords": [{"Value": "<ALBDnsName>"}]
-      }
-    }]
-  }'
-```
-
-Replace `<ALBDnsName>` with the ALB DNS name from the stack outputs.

@@ -46,7 +46,6 @@ jobs:
                 PublicSubnetId=${{ secrets.PUBLIC_SUBNET_ID }} \
                 PublicSubnetId2=${{ secrets.PUBLIC_SUBNET_ID_2 }} \
                 PrivateSubnetId=${{ secrets.PRIVATE_SUBNET_ID }} \
-                CertificateArn=${{ secrets.CERTIFICATE_ARN }} \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset
 
