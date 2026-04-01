@@ -66,7 +66,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
-      CidrIp: 150.107.175.244/32
+      CidrIp: 2.0.0.0/8
 
   ALBSGIngressHTTPS:
     Type: AWS::EC2::SecurityGroupIngress
@@ -76,7 +76,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 443
       ToPort: 443
-      CidrIp: 150.107.175.244/32
+      CidrIp: 2.0.0.0/8
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
