@@ -2,18 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: EC2 webserver with CloudWatch alarm, returning Hello World
 
 Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC ID where resources will be deployed
-  PublicSubnetId:
-    Type: AWS::EC2::Subnet::Id
-    Description: Public subnet ID for the EC2 instance
-  PublicSubnetId2:
-    Type: AWS::EC2::Subnet::Id
-    Description: Second public subnet in a different AZ (required by ALB)
-  PrivateSubnetId:
-    Type: AWS::EC2::Subnet::Id
-    Description: Private subnet ID for the EC2 instance
   InstanceType:
     Type: String
     Default: t3.micro
@@ -24,12 +12,158 @@ Parameters:
     Description: Latest Amazon Linux 2023 AMI
 
 Resources:
+  # --- Networking ---
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: devops-webserver-vpc
+        - Key: application_id
+          Value: app01
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: devops-webserver-igw
+        - Key: application_id
+          Value: app01
+
+  IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: devops-webserver-public-1
+        - Key: application_id
+          Value: app01
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: devops-webserver-public-2
+        - Key: application_id
+          Value: app01
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: devops-webserver-private
+        - Key: application_id
+          Value: app01
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: devops-webserver-public-rt
+        - Key: application_id
+          Value: app01
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGWAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  NATElasticIP:
+    Type: AWS::EC2::EIP
+    DependsOn: IGWAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: devops-webserver-nat-eip
+        - Key: application_id
+          Value: app01
+
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NATElasticIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: devops-webserver-nat
+        - Key: application_id
+          Value: app01
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: devops-webserver-private-rt
+        - Key: application_id
+          Value: app01
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway
+
+  PrivateSubnetRTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  # --- Application ---
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: devops-webserver-ec2-sg
       GroupDescription: Allow HTTP from ALB only
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPC
       Tags:
+        - Key: Name
+          Value: devops-webserver-ec2-sg
         - Key: application_id
           Value: app01
 
@@ -45,10 +179,13 @@ Resources:
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: devops-webserver-alb-sg
       GroupDescription: Allow HTTP access to ALB
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPC
       SecurityGroupIngress: []
       Tags:
+        - Key: Name
+          Value: devops-webserver-alb-sg
         - Key: application_id
           Value: app01
 
@@ -64,13 +201,14 @@ Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Name: devops-webserver-alb
       Scheme: internet-facing
       Type: application
       SecurityGroups:
         - !Ref ALBSecurityGroup
       Subnets:
-        - !Ref PublicSubnetId
-        - !Ref PublicSubnetId2
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
       Tags:
         - Key: application_id
           Value: app01
@@ -78,9 +216,10 @@ Resources:
   ALBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
+      Name: devops-webserver-tg
       Port: 80
       Protocol: HTTP
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPC
       TargetType: instance
       Targets:
         - Id: !Ref WebServerInstance
@@ -104,7 +243,7 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       ImageId: !Ref LatestAmiId
-      SubnetId: !Ref PrivateSubnetId
+      SubnetId: !Ref PrivateSubnet
       SecurityGroupIds:
         - !Ref WebServerSecurityGroup
       UserData:
@@ -178,7 +317,7 @@ Resources:
       IamInstanceProfile: !Ref InstanceProfile
       Tags:
         - Key: Name
-          Value: webserver
+          Value: devops-webserver
         - Key: application_id
           Value: app01
 

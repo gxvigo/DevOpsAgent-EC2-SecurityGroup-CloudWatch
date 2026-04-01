@@ -8,6 +8,9 @@ A CloudFormation template that deploys an Apache webserver on EC2 behind an Appl
 
 | Resource | Purpose |
 |---|---|
+| VPC + Subnets | Isolated network with 2 public subnets (ALB) and 1 private subnet (EC2) |
+| Internet Gateway | Provides internet access for the public subnets |
+| NAT Gateway | Allows the EC2 instance in the private subnet to reach the internet |
 | Application Load Balancer | Internet-facing ALB that routes HTTP traffic to the EC2 instance |
 | ALB Security Group | Allows inbound TCP port 80 from the internet (`0.0.0.0/0`) |
 | ALB Target Group | Registers the EC2 instance with health checks on `/index.html` |
@@ -40,32 +43,22 @@ aws iam create-access-key --user-name devops-user
 ```
 
 - AWS CLI installed and configured with the above user's credentials.
-- An existing VPC with two public subnets in different Availability Zones (required by the ALB) and a private subnet for the EC2 instance.
-- The public subnets' route tables must have a route to an Internet Gateway.
-- The private subnet must have a route to a NAT Gateway. This is required because the EC2 UserData script needs internet access to install packages (`httpd`, `amazon-cloudwatch-agent`) and the CloudWatch agent needs outbound connectivity to push logs. Without a NAT Gateway, the instance will fail to bootstrap and the ALB will return 502.
 
 ## Parameters
 
 | Parameter | Required | Default | Description |
 |---|---|---|---|
-| `VpcId` | Yes | — | ID of the VPC (e.g. `vpc-0abc123`) |
-| `PublicSubnetId` | Yes | — | ID of a public subnet |
-| `PublicSubnetId2` | Yes | — | ID of a second public subnet in a different AZ |
-| `PrivateSubnetId` | Yes | — | ID of a private subnet for the EC2 instance |
 | `InstanceType` | No | `t3.micro` | EC2 instance type |
 | `LatestAmiId` | No | Amazon Linux 2023 (SSM lookup) | AMI to use |
 
 ## Deploy
 
+The template creates its own VPC, subnets, Internet Gateway, and NAT Gateway — no existing networking required.
+
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation-webserver.yaml \
   --stack-name DevOpsAgent-EC2-webserver-GitHub \
-  --parameter-overrides \
-      VpcId=vpc-0abc123 \
-      PublicSubnetId=subnet-0def456 \
-      PublicSubnetId2=subnet-0ghi789 \
-      PrivateSubnetId=subnet-0priv123 \
   --capabilities CAPABILITY_IAM
 ```
 
@@ -127,10 +120,6 @@ The workflow at `.github/workflows/deploy.yml` handles deployment and teardown.
 |---|---|
 | `AWS_ACCESS_KEY_ID` | IAM user access key ID |
 | `AWS_SECRET_ACCESS_KEY` | IAM user secret access key |
-| `VPC_ID` | Target VPC ID |
-| `PUBLIC_SUBNET_ID` | First public subnet ID |
-| `PUBLIC_SUBNET_ID_2` | Second public subnet ID (different AZ) |
-| `PRIVATE_SUBNET_ID` | Private subnet ID for the EC2 instance |
 
 
 
