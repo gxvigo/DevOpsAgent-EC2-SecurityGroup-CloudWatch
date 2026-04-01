@@ -31,14 +31,23 @@ All taggable resources carry the tag `application_id = app01`.
 
 ```bash
 aws iam create-user --user-name devops-user
-aws iam put-user-policy \
-  --user-name devops-user \
+
+aws iam create-policy \
   --policy-name devops-policy-infra \
   --policy-document file://iam-policy-infra.json
-aws iam put-user-policy \
-  --user-name devops-user \
+
+aws iam create-policy \
   --policy-name devops-policy-monitoring \
   --policy-document file://iam-policy-monitoring.json
+
+aws iam attach-user-policy \
+  --user-name devops-user \
+  --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/devops-policy-infra
+
+aws iam attach-user-policy \
+  --user-name devops-user \
+  --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/devops-policy-monitoring
+
 aws iam create-access-key --user-name devops-user
 ```
 
