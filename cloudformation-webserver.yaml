@@ -76,7 +76,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 443
       ToPort: 443
-      CidrIp: 0.0.0.0/0
+      CidrIp: 2.0.0.0/8
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
