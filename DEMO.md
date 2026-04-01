@@ -12,7 +12,7 @@ This demo walks through a scenario where a code change breaks the webserver, and
   ```
   http://<ALBDnsName>/index.html
   ```
-- Before running the demo, verify that the ALB security group CIDR includes your public IP address. Find your IP at [https://www.whatismyip.com/](https://www.whatismyip.com/) and confirm it falls within the `0.0.0.0/0` range (which allows all IPs). If the CIDR has been previously restricted, update `ALBSGIngress` in the template to include your IP (e.g. `150.107.175.244/32`) or reset it to `0.0.0.0/0`, then deploy.
+- Before running the demo, verify that the ALB security group CIDR includes your public IP address. Find your IP at [https://www.whatismyip.com/](https://www.whatismyip.com/) and confirm it falls within the `0.0.0.0/0` range (which allows all IPs). If the CIDR has been previously restricted, update `ALBSGIngress` in the template to include your IP (e.g. `150.107.175.244/32`) from <whatsmyip>
 - DevOps Agent Space is configured in the same AWS account where the stack is deployed.
 
 ## Demo Steps
@@ -28,7 +28,7 @@ http://<ALBDnsName>/index.html?name=Demo
 
 ### 2. Introduce a breaking change in Kiro
 
-Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resource. Change the CIDR from `0.0.0.0/0` to `2.0.0.0/8`:
+Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resource. Change the CIDR from `<whatsmyip>/32` to `2.0.0.0/8`:
 
 ```yaml
   ALBSGIngress:
@@ -43,7 +43,7 @@ Open `cloudformation-webserver.yaml` in Kiro and find the `ALBSGIngress` resourc
 
 This restricts the ALB security group to only allow traffic from the `2.0.0.0/8` range, effectively blocking most users.
 
-> Note: use a subnet mask like `/8` or smaller. A `/0` mask (e.g. `2.0.0.0/0`) covers all IPs and AWS will normalize it to `0.0.0.0/0`, which won't actually restrict anything.
+> Note: use a subnet mask like `/8` or smaller. A `/0` mask (e.g. `2.0.0.0/0`) covers all IPs and AWS will normalize it to `<whatsmyip>/32`.
 
 ### 3. Commit and push
 
@@ -73,7 +73,7 @@ Refresh the ALB URL in the browser:
 http://<ALBDnsName>/index.html
 ```
 
-The page should now time out or be unreachable, since your IP is no longer in the `0.0.0.0/0` range.
+The page should now time out or be unreachable, since your IP is no longer in the `<whatsmyip>/32` range.
 
 ### 6. Start an investigation from DevOps Agent Space
 
@@ -82,14 +82,14 @@ Open DevOps Agent Space in the AWS account where the stack is deployed. Start a 
 - Detect the CloudWatch Synthetics canary (`webserver-heartbeat`) is failing
 - Identify the security group change as the root cause
 - Correlate the recent CloudFormation deployment with the failure
-- Recommend reverting the CIDR back to `0.0.0.0/0`
+- Recommend reverting the CIDR back to `<whatsmyip>/32`
 
 ## Cleanup
 
 Revert the change to restore access:
 
 ```yaml
-      CidrIp: 0.0.0.0/0
+      CidrIp: <whatsmyip>/32
 ```
 
 > Note: when restricting the CIDR for testing, use a subnet mask like `/8` or smaller (e.g. `2.0.0.0/8`). A `/0` mask covers all IPs and AWS will normalize any address with `/0` to `0.0.0.0/0`.
