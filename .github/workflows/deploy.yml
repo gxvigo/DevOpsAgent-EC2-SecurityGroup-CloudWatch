@@ -41,6 +41,8 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.TEMPLATE_FILE }} \
             --stack-name ${{ env.STACK_NAME }} \
+            --parameter-overrides \
+                CertificateArn=${{ secrets.CERTIFICATE_ARN }} \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset
 

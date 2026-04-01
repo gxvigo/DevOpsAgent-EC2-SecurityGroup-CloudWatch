@@ -10,6 +10,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
     Description: Latest Amazon Linux 2023 AMI
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN for HTTPS
 
 Resources:
   # --- Networking ---
@@ -198,6 +201,15 @@ Resources:
       ToPort: 80
       CidrIp: 0.0.0.0/0
 
+  ALBSGIngressHTTPS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ALBSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -235,8 +247,78 @@ Resources:
       Port: 80
       Protocol: HTTP
       DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: '443'
+            StatusCode: HTTP_301
+
+  ALBListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        - Type: authenticate-cognito
+          Order: 1
+          AuthenticateCognitoConfig:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+            UserPoolClientId: !Ref CognitoUserPoolClient
+            UserPoolDomain: !Ref CognitoUserPoolDomain
         - Type: forward
+          Order: 2
           TargetGroupArn: !Ref ALBTargetGroup
+
+  # --- Cognito ---
+
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: devops-webserver-users
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+      UserPoolTags:
+        application_id: app01
+
+  CognitoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub devops-webserver-${AWS::AccountId}
+      UserPoolId: !Ref CognitoUserPool
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: devops-webserver-alb
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders:
+        - COGNITO
+      CallbackURLs:
+        - !Sub https://${ApplicationLoadBalancer.DNSName}/oauth2/idpresponse
+      LogoutURLs:
+        - !Sub https://${ApplicationLoadBalancer.DNSName}/index.html
 
   WebServerInstance:
     Type: AWS::EC2::Instance
@@ -550,4 +632,7 @@ Outputs:
     Value: !GetAtt ApplicationLoadBalancer.DNSName
   HelloWorldUrl:
     Description: URL to test the Hello World app via ALB
-    Value: !Sub http://${ApplicationLoadBalancer.DNSName}/index.html
+    Value: !Sub https://${ApplicationLoadBalancer.DNSName}/index.html
+  CognitoSignUpUrl:
+    Description: Cognito hosted UI for user sign-up
+    Value: !Sub https://devops-webserver-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com/signup?client_id=${CognitoUserPoolClient}&response_type=code&scope=openid&redirect_uri=https://${ApplicationLoadBalancer.DNSName}/oauth2/idpresponse
