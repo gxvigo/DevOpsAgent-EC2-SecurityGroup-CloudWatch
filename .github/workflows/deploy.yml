@@ -3,6 +3,9 @@ name: Deploy CloudFormation Stack
 on:
   push:
     branches: [main]
+    paths:
+      - 'cloudformation-webserver.yaml'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
       action:

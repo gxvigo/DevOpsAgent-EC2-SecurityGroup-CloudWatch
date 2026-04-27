@@ -7,9 +7,9 @@ Parameters:
     Default: t3.micro
     Description: EC2 instance type
   LatestAmiId:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
-    Description: Latest Amazon Linux 2023 AMI
+    Type: String
+    Default: ami-0c3389a4fa5bddaad
+    Description: EC2 AMI ID (pinned to avoid uncontrolled instance replacement)
   CertificateArn:
     Type: String
     Description: ACM certificate ARN for HTTPS
