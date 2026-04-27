@@ -2,7 +2,7 @@
 
 > Source: [https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/](https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/)
 
-A CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a personalizable "Hello" page, and monitors availability with a CloudWatch Synthetics canary.
+A CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a personalizable "Hello" html page, and monitors availability with a CloudWatch Synthetics canary.
 
 ## Architecture
 
