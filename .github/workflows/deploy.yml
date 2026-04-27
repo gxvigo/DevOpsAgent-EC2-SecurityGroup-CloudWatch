@@ -46,6 +46,7 @@ jobs:
             --stack-name ${{ env.STACK_NAME }} \
             --parameter-overrides \
                 CertificateArn=${{ secrets.CERTIFICATE_ARN }} \
+                LatestAmiId=ami-0c3389a4fa5bddaad \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset
 
