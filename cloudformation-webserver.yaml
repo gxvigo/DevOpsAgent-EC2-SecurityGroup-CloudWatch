@@ -206,8 +206,8 @@ Resources:
     Properties:
       GroupId: !GetAtt ALBSecurityGroup.GroupId
       IpProtocol: tcp
-      FromPort: 443
-      ToPort: 443
+      FromPort: 44300
+      ToPort: 44300
       CidrIp: 0.0.0.0/0
 
   ApplicationLoadBalancer:
