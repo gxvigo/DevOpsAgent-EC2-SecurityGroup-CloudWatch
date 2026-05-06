@@ -1,4 +1,3 @@
-# Test commit - pipeline trigger verification
 AWSTemplateFormatVersion: '2010-09-09'
 Description: EC2 webserver with CloudWatch alarm, returning Hello World
 
