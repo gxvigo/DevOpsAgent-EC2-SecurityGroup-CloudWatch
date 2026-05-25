@@ -129,7 +129,7 @@ curl -I http://<ALBDnsName>/index.html
 # → HTTP/1.1 200 OK
 ```
 
-The page polls itself in the background every few seconds. If the webserver becomes unreachable (for example, because of a security group change), a full-screen red "Webserver unreachable" overlay appears automatically — no page refresh needed.
+If the EC2 backend goes unhealthy, the ALB returns its built-in `503 Service Temporarily Unavailable` page within ~10 seconds (driven by the aggressive target group health check thresholds: 5s interval, 2 failed checks).
 
 ## Monitoring
 
