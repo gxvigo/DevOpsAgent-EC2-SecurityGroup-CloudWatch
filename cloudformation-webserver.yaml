@@ -169,14 +169,14 @@ Resources:
           Value: devops-webserver-ec2-sg
         - Key: application_id
           Value: app01
-
+ß
   WebServerSGIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref WebServerSecurityGroup
       IpProtocol: tcp
-      FromPort: 80
-      ToPort: 80
+      FromPort: 800
+      ToPort: 800
       SourceSecurityGroupId: !Ref ALBSecurityGroup
 
   ALBSecurityGroup:
