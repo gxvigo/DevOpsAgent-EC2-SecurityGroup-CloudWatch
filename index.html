@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World</title>
+  <title>AWS DevOps Agent — Workshop</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -12,14 +12,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 48px 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: #fff;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
     .container {
-      text-align: center;
+      width: 100%;
+      max-width: 880px;
       animation: fadeUp 0.8s ease-out;
     }
 
@@ -37,37 +39,106 @@
     }
 
     h1 {
-      font-size: clamp(3rem, 8vw, 6rem);
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
       font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 .accent {
       background: linear-gradient(to right, #a78bfa, #60a5fa, #34d399);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      line-height: 1.1;
     }
 
-    p {
-      margin-top: 16px;
+    .subtitle {
+      margin-top: 18px;
       font-size: 1.1rem;
-      color: rgba(255,255,255,0.6);
+      max-width: 640px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.5;
     }
+
+    .agenda {
+      margin-top: 56px;
+      padding: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    .agenda h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 20px;
+    }
+
+    .agenda ol {
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .agenda li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 1.05rem;
+    }
+
+    .agenda li:last-child { border-bottom: none; }
+
+    .agenda li::before {
+      content: counter(step, decimal-leading-zero);
+      flex-shrink: 0;
+      width: 36px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: #a78bfa;
+    }
+
+    .agenda li strong {
+      display: block;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .agenda li span {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    footer {
+      margin-top: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .status { display: flex; align-items: center; gap: 8px; }
 
     .pulse {
       width: 8px;
       height: 8px;
       background: #34d399;
       border-radius: 50%;
-      display: inline-block;
-      margin-right: 8px;
       animation: pulse 2s infinite;
-      vertical-align: middle;
     }
 
-    .status {
-      margin-top: 40px;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.4);
-    }
+    .meta { font-variant-numeric: tabular-nums; }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -78,18 +149,162 @@
       0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
       50% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(52,211,153,0); }
     }
+
+    /* --- Offline overlay --- */
+    .offline-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at center, #7f1d1d, #450a0a 70%, #1c0606);
+      z-index: 9999;
+      animation: overlayIn 0.4s ease-out;
+    }
+
+    .offline-overlay[data-visible="true"] { display: flex; }
+
+    .offline-content {
+      text-align: center;
+      max-width: 560px;
+      animation: shake 0.5s ease-out;
+    }
+
+    .offline-icon {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 16px;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    .offline-content h2 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .offline-content p {
+      margin-top: 12px;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .offline-content .hint {
+      margin-top: 24px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    @keyframes overlayIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
   </style>
 </head>
 <body>
   <main class="container" role="main">
-    <div class="badge">app01</div>
-    <h1>Hello <span id="name">World</span></h1>
-    <p>Your webserver is up and running.</p>
-    <div class="status"><span class="pulse" aria-hidden="true"></span>System operational</div>
+    <div class="badge">AWS Workshop</div>
+    <h1>Welcome to the<br><span class="accent">AWS DevOps Agent</span> Workshop</h1>
+    <p class="subtitle">Investigate, diagnose, and remediate cloud incidents with an AI agent that works alongside your team.</p>
+
+    <section class="agenda" aria-labelledby="agenda-heading">
+      <h2 id="agenda-heading">Agenda</h2>
+      <ol>
+        <li><div><strong>Architecture overview</strong><span>EC2, ALB, CloudWatch, Synthetics canary</span></div></li>
+        <li><div><strong>Deploy live</strong><span>CloudFormation via GitHub Actions</span></div></li>
+        <li><div><strong>Break it on purpose</strong><span>A small security group change ships to production</span></div></li>
+        <li><div><strong>Investigate with the agent</strong><span>Detect, correlate, and pinpoint root cause</span></div></li>
+        <li><div><strong>Remediate and Q&amp;A</strong><span>Roll forward, lessons learned, open discussion</span></div></li>
+      </ol>
+    </section>
+
+    <footer>
+      <div class="status"><span class="pulse" aria-hidden="true"></span><span id="statusText">System operational</span></div>
+      <div class="meta" id="meta">Last check: just now</div>
+    </footer>
   </main>
+
+  <div class="offline-overlay" id="offlineOverlay" role="alert" aria-live="assertive">
+    <div class="offline-content">
+      <div class="offline-icon" aria-hidden="true">⚠</div>
+      <h2>Webserver unreachable</h2>
+      <p id="offlineDetail">Last successful check: just now</p>
+      <p class="hint">Time to investigate with the DevOps Agent</p>
+    </div>
+  </div>
+
   <script>
-    const name = new URLSearchParams(window.location.search).get('name');
-    if (name) document.getElementById('name').textContent = name;
+    (function () {
+      var overlay = document.getElementById('offlineOverlay');
+      var statusText = document.getElementById('statusText');
+      var meta = document.getElementById('meta');
+      var detail = document.getElementById('offlineDetail');
+      var failures = 0;
+      var lastSuccess = Date.now();
+      var FAIL_THRESHOLD = 2;
+      var TIMEOUT_MS = 4000;
+      var INTERVAL_MS = 3000;
+
+      function fmtSeconds(ms) {
+        var s = Math.max(0, Math.floor(ms / 1000));
+        if (s < 60) return s + 's ago';
+        var m = Math.floor(s / 60);
+        return m + 'm ' + (s % 60) + 's ago';
+      }
+
+      function setOnline() {
+        overlay.removeAttribute('data-visible');
+        statusText.textContent = 'System operational';
+        meta.textContent = 'Last check: just now';
+      }
+
+      function setOffline() {
+        var ago = fmtSeconds(Date.now() - lastSuccess);
+        overlay.setAttribute('data-visible', 'true');
+        statusText.textContent = 'Connection lost';
+        meta.textContent = 'Last reachable: ' + ago;
+        detail.textContent = 'Last successful check: ' + ago;
+      }
+
+      function check() {
+        var ctrl = new AbortController();
+        var t = setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS);
+        fetch('/index.html?hb=' + Date.now(), {
+          method: 'HEAD',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          signal: ctrl.signal
+        }).then(function (res) {
+          clearTimeout(t);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          failures = 0;
+          lastSuccess = Date.now();
+          setOnline();
+        }).catch(function () {
+          clearTimeout(t);
+          failures++;
+          if (failures >= FAIL_THRESHOLD) setOffline();
+        });
+      }
+
+      setInterval(check, INTERVAL_MS);
+      check();
+    })();
   </script>
 </body>
 </html>

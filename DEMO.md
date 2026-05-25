@@ -19,11 +19,10 @@ This demo walks through a scenario where a code change breaks the webserver, and
 
 ### 1. Verify the app is working
 
-Open the ALB URL in a browser and confirm you see the Hello World page:
+Open the ALB URL in a browser and confirm you see the Workshop welcome page with the agenda. Leave this tab open for the rest of the demo — the page polls the ALB every few seconds in the background, so the audience will see the state change live.
 
 ```
 http://<ALBDnsName>/index.html
-http://<ALBDnsName>/index.html?name=Demo
 ```
 
 ### 2. Introduce a breaking change in Kiro
@@ -67,13 +66,13 @@ Wait for the "Deploy CloudFormation Stack" workflow to complete successfully.
 
 ### 5. Confirm the page is broken
 
-Refresh the ALB URL in the browser:
+Switch back to the browser tab from step 1. Within a few seconds the page detects it can no longer reach the ALB and a full-screen red **"Webserver unreachable"** overlay drops in, including how long ago the last successful check was. No refresh required.
 
 ```
 http://<ALBDnsName>/index.html
 ```
 
-The page should now time out or be unreachable, since your IP is no longer in the `<whatsmyip>/32` range.
+If you opened a fresh tab instead, the page will simply fail to load.
 
 ### 6. Start an investigation from DevOps Agent Space
 

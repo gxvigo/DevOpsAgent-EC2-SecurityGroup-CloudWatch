@@ -1,8 +1,8 @@
-# app01 — Hello World Webserver
+# app01 — DevOps Agent Workshop Webserver
 
 > Source: [https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/](https://github.com/gxvigo/DevOpsAgent-EC2-SecurityGroup-CloudWatch/)
 
-A CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a personalizable "Hello" html page, and monitors availability with a CloudWatch Synthetics canary.
+A CloudFormation template that deploys an Apache webserver on EC2 behind an Application Load Balancer, serves a workshop welcome page that auto-detects when the backend goes offline, and monitors availability with a CloudWatch Synthetics canary.
 
 ## Architecture
 
@@ -118,21 +118,18 @@ Alternatively, users can self-register using the `CognitoSignUpUrl` from the sta
 
 ## Test
 
-The page accepts an optional `name` query parameter to personalize the greeting. It defaults to "World" if not provided.
+Once deployed, open the ALB URL in a browser to see the workshop welcome page:
 
-```bash
-# Default greeting
-curl http://<ALBDnsName>/index.html
-# → Hello World
-
-# Custom greeting
-curl http://<ALBDnsName>/index.html?name=Kiro
-# → Hello Kiro
+```
+http://<ALBDnsName>/index.html
 ```
 
-Open in a browser:
-- `http://<ALBDnsName>/index.html` → Hello World
-- `http://<ALBDnsName>/index.html?name=Alice` → Hello Alice
+```bash
+curl -I http://<ALBDnsName>/index.html
+# → HTTP/1.1 200 OK
+```
+
+The page polls itself in the background every few seconds. If the webserver becomes unreachable (for example, because of a security group change), a full-screen red "Webserver unreachable" overlay appears automatically — no page refresh needed.
 
 ## Monitoring
 
