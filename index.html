@@ -7,42 +7,44 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html, body { height: 100%; }
+
     body {
-      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 48px 24px;
+      padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: #fff;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     .container {
       width: 100%;
-      max-width: 880px;
+      max-width: 920px;
       animation: fadeUp 0.8s ease-out;
     }
 
     .badge {
       display: inline-block;
-      padding: 6px 16px;
+      padding: 5px 14px;
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 20px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       backdrop-filter: blur(4px);
       background: rgba(255,255,255,0.05);
     }
 
     h1 {
-      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-size: clamp(1.6rem, 3.2vw, 2.6rem);
       font-weight: 700;
-      line-height: 1.1;
+      line-height: 1.15;
       letter-spacing: -0.02em;
+      white-space: nowrap;
     }
 
     h1 .accent {
@@ -53,76 +55,69 @@
     }
 
     .subtitle {
-      margin-top: 18px;
-      font-size: 1.1rem;
-      max-width: 640px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+      max-width: 720px;
       color: rgba(255,255,255,0.65);
       line-height: 1.5;
     }
 
     .agenda {
-      margin-top: 56px;
-      padding: 32px;
+      margin-top: 28px;
+      padding: 22px 26px;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
+      border-radius: 14px;
       background: rgba(255,255,255,0.04);
       backdrop-filter: blur(8px);
     }
 
-    .agenda h2 {
-      font-size: 0.85rem;
+    .agenda-header {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px;
+      padding-bottom: 8px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 3px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: rgba(255,255,255,0.5);
-      margin-bottom: 20px;
     }
 
-    .agenda ol {
+    .agenda ul {
       list-style: none;
-      counter-reset: step;
     }
 
     .agenda li {
-      counter-increment: step;
-      display: flex;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: 140px 1fr;
       gap: 16px;
-      padding: 14px 0;
+      align-items: center;
+      padding: 8px 0;
       border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 1.05rem;
+      font-size: 0.92rem;
     }
 
     .agenda li:last-child { border-bottom: none; }
 
-    .agenda li::before {
-      content: counter(step, decimal-leading-zero);
-      flex-shrink: 0;
-      width: 36px;
+    .agenda li .time {
       font-variant-numeric: tabular-nums;
       font-weight: 600;
       color: #a78bfa;
+      letter-spacing: 0.02em;
     }
 
-    .agenda li strong {
-      display: block;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .agenda li span {
-      display: block;
-      margin-top: 2px;
-      font-size: 0.9rem;
-      color: rgba(255,255,255,0.5);
+    .agenda li .session {
+      color: rgba(255,255,255,0.92);
     }
 
     footer {
-      margin-top: 32px;
+      margin-top: 18px;
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: rgba(255,255,255,0.4);
     }
 
@@ -143,23 +138,36 @@
       0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
       50% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(52,211,153,0); }
     }
+
+    @media (max-height: 720px) {
+      .agenda { margin-top: 20px; padding: 16px 22px; }
+      .agenda li { padding: 6px 0; font-size: 0.86rem; }
+      .subtitle { margin-top: 10px; font-size: 0.9rem; }
+    }
   </style>
 </head>
 <body>
   <main class="container" role="main">
     <div class="badge">AWS Workshop</div>
-    <h1>Welcome to the<br><span class="accent">AWS DevOps Agent</span> Workshop</h1>
+    <h1>Welcome to the <span class="accent">AWS DevOps Agent</span> Workshop</h1>
     <p class="subtitle">Investigate, diagnose, and remediate cloud incidents with an AI agent that works alongside your team.</p>
 
     <section class="agenda" aria-labelledby="agenda-heading">
-      <h2 id="agenda-heading">Agenda</h2>
-      <ol>
-        <li><div><strong>Architecture overview</strong><span>EC2, ALB, CloudWatch, Synthetics canary</span></div></li>
-        <li><div><strong>Deploy live</strong><span>CloudFormation via GitHub Actions</span></div></li>
-        <li><div><strong>Break it on purpose</strong><span>A small security group change ships to production</span></div></li>
-        <li><div><strong>Investigate with the agent</strong><span>Detect, correlate, and pinpoint root cause</span></div></li>
-        <li><div><strong>Remediate and Q&amp;A</strong><span>Roll forward, lessons learned, open discussion</span></div></li>
-      </ol>
+      <div class="agenda-header" id="agenda-heading">
+        <span>Time</span>
+        <span>Session</span>
+      </div>
+      <ul>
+        <li><span class="time">11:30 – 12:30</span><span class="session">Registration and lunch</span></li>
+        <li><span class="time">12:30 – 12:50</span><span class="session">Introduction to AIOps and AWS DevOps Agent</span></li>
+        <li><span class="time">12:50 – 13:10</span><span class="session">DevOps Agent demo / walkthrough</span></li>
+        <li><span class="time">13:10 – 13:30</span><span class="session">Best practices</span></li>
+        <li><span class="time">13:30 – 13:50</span><span class="session">Voice of the customer – Mitre10</span></li>
+        <li><span class="time">13:50 – 14:00</span><span class="session">Q&amp;A</span></li>
+        <li><span class="time">14:00 – 16:00</span><span class="session">Hands-on workshop (with afternoon re-charge)</span></li>
+        <li><span class="time">16:00 – 16:10</span><span class="session">Quiz</span></li>
+        <li><span class="time">16:10 – 16:30</span><span class="session">Q&amp;A and networking</span></li>
+      </ul>
     </section>
 
     <footer>
