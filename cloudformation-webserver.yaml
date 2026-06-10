@@ -234,7 +234,7 @@ Resources:
       VpcId: !Ref VPC
       TargetType: instance
       Targets:
-        - Id: !Ref WebServerInstanceV5
+        - Id: !Ref WebServerInstanceV6
       HealthCheckPath: /index.html
       HealthCheckIntervalSeconds: 5
       HealthCheckTimeoutSeconds: 2
@@ -324,7 +324,7 @@ Resources:
       LogoutURLs:
         - !Sub https://${ApplicationLoadBalancer.DNSName}/index.html
 
-  WebServerInstanceV5:
+  WebServerInstanceV6:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
@@ -713,7 +713,7 @@ Resources:
 Outputs:
   PrivateIp:
     Description: Private IP address of the EC2 instance
-    Value: !GetAtt WebServerInstanceV5.PrivateIp
+    Value: !GetAtt WebServerInstanceV6.PrivateIp
   ALBDnsName:
     Description: DNS name of the Application Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName
