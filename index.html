@@ -3,177 +3,255 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AWS DevOps Agent — Workshop</title>
+  <title>Aurora Bank</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     html, body { height: 100%; }
-
     body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: #fff;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
-    .container {
-      width: 100%;
-      max-width: 920px;
-      animation: fadeUp 0.8s ease-out;
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #a78bfa, #34d399);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #0f0c29;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 5px 14px;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 20px;
-      font-size: 0.75rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      backdrop-filter: blur(4px);
-      background: rgba(255,255,255,0.05);
+    /* === Login view === */
+    .login-view { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .login-card {
+      width: 100%; max-width: 420px;
+      padding: 40px 36px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: fadeUp 0.7s ease-out;
+    }
+    .login-brand { justify-content: center; margin-bottom: 32px; font-size: 1.2rem; }
+    .login-card h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
+    .login-card p.hint { color: rgba(255,255,255,0.55); font-size: 0.9rem; margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.55); margin-bottom: 8px;
+    }
+    .field input {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: #fff; font-size: 0.95rem; font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .field input:focus { outline: none; border-color: #a78bfa; background: rgba(255,255,255,0.08); }
+    .actions { margin-top: 24px; }
+    .btn {
+      display: block; width: 100%; padding: 13px 16px;
+      border: none; border-radius: 10px;
+      background: linear-gradient(to right, #a78bfa, #60a5fa);
+      color: #0f0c29; font-weight: 600; font-size: 0.95rem; font-family: inherit;
+      cursor: pointer; letter-spacing: 0.02em;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .demo-note {
+      margin-top: 24px; text-align: center;
+      font-size: 0.75rem; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
     }
 
-    h1 {
-      font-size: clamp(1.6rem, 3.2vw, 2.6rem);
-      font-weight: 700;
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      white-space: nowrap;
+    /* === App view === */
+    .app-view { display: none; flex-direction: column; flex: 1; }
+    .app-view.show { display: flex; }
+    .app-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.2);
     }
+    .app-nav .brand { font-size: 1rem; }
+    .app-nav .user { display: flex; align-items: center; gap: 14px; font-size: 0.9rem; }
+    .app-nav .user .name { color: rgba(255,255,255,0.85); }
+    .app-nav .user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #34d399);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #0f0c29; font-size: 0.85rem;
+    }
+    .signout {
+      color: rgba(255,255,255,0.5); font-size: 0.85rem;
+      background: none; border: none; cursor: pointer; font-family: inherit;
+      transition: color 0.2s;
+    }
+    .signout:hover { color: #fff; }
 
-    h1 .accent {
+    .app-main { flex: 1; padding: 32px; max-width: 1080px; margin: 0 auto; width: 100%; animation: fadeUp 0.6s ease-out; }
+
+    .balance-card {
+      padding: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(96,165,250,0.08));
+      margin-bottom: 32px;
+    }
+    .balance-card .label {
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); margin-bottom: 12px;
+    }
+    .balance-card .amount {
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 700; letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
       background: linear-gradient(to right, #a78bfa, #60a5fa, #34d399);
-      -webkit-background-clip: text;
-      background-clip: text;
+      -webkit-background-clip: text; background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
-    .subtitle {
-      margin-top: 12px;
-      font-size: 0.95rem;
-      max-width: 720px;
-      color: rgba(255,255,255,0.65);
-      line-height: 1.5;
+    .balance-card .account {
+      margin-top: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.5);
+      font-variant-numeric: tabular-nums; letter-spacing: 0.05em;
     }
 
-    .agenda {
-      margin-top: 28px;
-      padding: 22px 26px;
-      border: 1px solid rgba(255,255,255,0.1);
+    .transactions h2 {
+      font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.55); margin-bottom: 16px;
+    }
+    .tx-list {
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
-      background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.03);
+      overflow: hidden;
     }
-
-    .agenda-header {
+    .tx {
       display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 16px;
-      padding-bottom: 8px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.5);
-    }
-
-    .agenda ul {
-      list-style: none;
-    }
-
-    .agenda li {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 16px;
-      align-items: center;
-      padding: 8px 0;
+      grid-template-columns: 110px 1fr 130px 130px;
+      align-items: center; gap: 16px;
+      padding: 14px 22px;
       border-bottom: 1px solid rgba(255,255,255,0.06);
       font-size: 0.92rem;
     }
-
-    .agenda li:last-child { border-bottom: none; }
-
-    .agenda li .time {
-      font-variant-numeric: tabular-nums;
-      font-weight: 600;
-      color: #a78bfa;
-      letter-spacing: 0.02em;
+    .tx:last-child { border-bottom: none; }
+    .tx .date { color: rgba(255,255,255,0.45); font-size: 0.85rem; }
+    .tx .desc { color: rgba(255,255,255,0.92); font-weight: 500; }
+    .tx .cat {
+      justify-self: start;
+      padding: 3px 10px; border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      font-size: 0.72rem; letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.7);
     }
-
-    .agenda li .session {
-      color: rgba(255,255,255,0.92);
-    }
-
-    footer {
-      margin-top: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.4);
-    }
-
-    .pulse {
-      width: 8px;
-      height: 8px;
-      background: #34d399;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
+    .tx .amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .tx .amt.pos { color: #34d399; }
+    .tx .amt.neg { color: rgba(255,255,255,0.85); }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
-      50% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(52,211,153,0); }
-    }
-
-    @media (max-height: 720px) {
-      .agenda { margin-top: 20px; padding: 16px 22px; }
-      .agenda li { padding: 6px 0; font-size: 0.86rem; }
-      .subtitle { margin-top: 10px; font-size: 0.9rem; }
+    @media (max-width: 640px) {
+      .tx { grid-template-columns: 1fr 110px; gap: 8px; }
+      .tx .date { grid-column: 1/3; margin-bottom: -4px; }
+      .tx .cat { display: none; }
+      .app-main { padding: 20px; }
+      .app-nav { padding: 14px 20px; }
     }
   </style>
 </head>
 <body>
-  <main class="container" role="main">
-    <div class="badge">AWS Workshop</div>
-    <h1>Welcome to the <span class="accent">AWS DevOps Agent</span> workshop!</h1>
-    <p class="subtitle">Investigate, diagnose, and remediate cloud incidents with an AI agent that works alongside your team.</p>
-
-    <section class="agenda" aria-labelledby="agenda-heading">
-      <div class="agenda-header" id="agenda-heading">
-        <span>Time</span>
-        <span>Session</span>
+  <div class="login-view" id="loginView">
+    <div class="login-card">
+      <div class="brand login-brand">
+        <span class="brand-mark">A</span>
+        <span>Aurora Bank</span>
       </div>
-      <ul>
-        <li><span class="time">11:30 – 12:30</span><span class="session">Registration and lunch</span></li>
-        <li><span class="time">12:30 – 12:50</span><span class="session">Introduction to AIOps and AWS DevOps Agent</span></li>
-        <li><span class="time">12:50 – 13:10</span><span class="session">DevOps Agent demo / walkthrough</span></li>
-        <li><span class="time">13:10 – 13:30</span><span class="session">Best practices</span></li>
-        <li><span class="time">13:30 – 13:50</span><span class="session">Voice of the customer – Mitre10</span></li>
-        <li><span class="time">13:50 – 14:00</span><span class="session">Q&amp;A</span></li>
-        <li><span class="time">14:00 – 16:00</span><span class="session">Hands-on workshop (with afternoon re-charge)</span></li>
-        <li><span class="time">16:00 – 16:10</span><span class="session">Quiz</span></li>
-        <li><span class="time">16:10 – 16:30</span><span class="session">Q&amp;A and networking</span></li>
-      </ul>
-    </section>
+      <h1>Welcome back</h1>
+      <p class="hint">Sign in to access your account.</p>
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" value="alex.morgan">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" value="workshop123">
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn">Sign in</button>
+        </div>
+      </form>
+      <p class="demo-note">Demo environment &middot; any value works</p>
+    </div>
+  </div>
 
-    <footer>
-      <span class="pulse" aria-hidden="true"></span>
-      <span>System operational</span>
-    </footer>
-  </main>
+  <div class="app-view" id="appView">
+    <nav class="app-nav">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <span>Aurora Bank</span>
+      </div>
+      <div class="user">
+        <span class="name">Alex Morgan</span>
+        <span class="avatar">AM</span>
+        <button class="signout" id="signOutBtn">Sign out</button>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="balance-card">
+        <div class="label">Available balance</div>
+        <div class="amount">$14,287.65</div>
+        <div class="account">Checking &middot;&middot;&middot;&middot; 4823</div>
+      </div>
+
+      <section class="transactions">
+        <h2>Recent transactions</h2>
+        <div class="tx-list">
+          <div class="tx"><span class="date">Today</span><span class="desc">Direct deposit &mdash; ACME Corp</span><span class="cat">Income</span><span class="amt pos">+$3,250.00</span></div>
+          <div class="tx"><span class="date">Today</span><span class="desc">Whole Foods Market</span><span class="cat">Groceries</span><span class="amt neg">&minus;$87.42</span></div>
+          <div class="tx"><span class="date">Yesterday</span><span class="desc">Uber</span><span class="cat">Transport</span><span class="amt neg">&minus;$14.30</span></div>
+          <div class="tx"><span class="date">Yesterday</span><span class="desc">Netflix</span><span class="cat">Subscription</span><span class="amt neg">&minus;$15.99</span></div>
+          <div class="tx"><span class="date">2 days ago</span><span class="desc">Starbucks</span><span class="cat">Food &amp; drink</span><span class="amt neg">&minus;$6.75</span></div>
+          <div class="tx"><span class="date">3 days ago</span><span class="desc">Apple Store</span><span class="cat">Shopping</span><span class="amt neg">&minus;$1,299.00</span></div>
+          <div class="tx"><span class="date">4 days ago</span><span class="desc">Shell</span><span class="cat">Fuel</span><span class="amt neg">&minus;$58.20</span></div>
+          <div class="tx"><span class="date">5 days ago</span><span class="desc">AWS</span><span class="cat">Subscription</span><span class="amt neg">&minus;$112.50</span></div>
+          <div class="tx"><span class="date">6 days ago</span><span class="desc">Lyft</span><span class="cat">Transport</span><span class="amt neg">&minus;$22.80</span></div>
+          <div class="tx"><span class="date">7 days ago</span><span class="desc">Spotify</span><span class="cat">Subscription</span><span class="amt neg">&minus;$9.99</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var loginView = document.getElementById('loginView');
+      var appView = document.getElementById('appView');
+      var form = document.getElementById('loginForm');
+      var signOut = document.getElementById('signOutBtn');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        loginView.style.display = 'none';
+        appView.classList.add('show');
+      });
+
+      signOut.addEventListener('click', function () {
+        appView.classList.remove('show');
+        loginView.style.display = 'flex';
+      });
+    })();
+  </script>
 </body>
 </html>
