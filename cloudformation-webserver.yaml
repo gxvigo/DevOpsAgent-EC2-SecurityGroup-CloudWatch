@@ -175,8 +175,8 @@ Resources:
     Properties:
       GroupId: !Ref WebServerSecurityGroup
       IpProtocol: tcp
-      FromPort: 800
-      ToPort: 800
+      FromPort: 80
+      ToPort: 80
       SourceSecurityGroupId: !Ref ALBSecurityGroup
 
   ALBSecurityGroup:
