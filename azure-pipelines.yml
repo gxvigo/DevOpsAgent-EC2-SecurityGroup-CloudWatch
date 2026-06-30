@@ -1,0 +1,112 @@
+# ============================================================================
+# Azure Pipelines — deploys CloudFormation to AWS
+# Equivalent of .github/workflows/deploy.yml
+# No extensions required — uses plain bash + AWS CLI
+# ============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'cloudformation-webserver.yaml'
+      - 'azure-pipelines.yml'
+
+# Manual trigger (equivalent of GitHub Actions workflow_dispatch)
+parameters:
+  - name: action
+    displayName: 'Action'
+    type: string
+    default: deploy
+    values:
+      - deploy
+      - destroy
+
+variables:
+  STACK_NAME: 'DevOpsAgent-EC2-webserver-AzDevOps'
+  AWS_REGION: 'us-east-1'
+  TEMPLATE_FILE: 'cloudformation-webserver.yaml'
+
+stages:
+  # ============================================================================
+  # Deploy
+  # ============================================================================
+  - stage: Deploy
+    displayName: 'Deploy CloudFormation Stack'
+    condition: |
+      or(
+        ne(variables['Build.Reason'], 'Manual'),
+        eq('${{ parameters.action }}', 'deploy')
+      )
+    jobs:
+      - job: DeployStack
+        displayName: 'Deploy to AWS'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            displayName: 'Checkout code'
+
+          - script: |
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -q awscliv2.zip
+              sudo ./aws/install --update
+              aws --version
+            displayName: 'Install AWS CLI'
+
+          - script: |
+              aws cloudformation deploy \
+                --template-file $(TEMPLATE_FILE) \
+                --stack-name $(STACK_NAME) \
+                --parameter-overrides \
+                    CertificateArn=$(CERTIFICATE_ARN) \
+                    LatestAmiId=ami-0c3389a4fa5bddaad \
+                --capabilities CAPABILITY_IAM \
+                --no-fail-on-empty-changeset
+            displayName: 'Deploy CloudFormation stack'
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              AWS_DEFAULT_REGION: $(AWS_REGION)
+
+          - script: |
+              aws cloudformation describe-stacks \
+                --stack-name $(STACK_NAME) \
+                --query "Stacks[0].Outputs" \
+                --output table
+            displayName: 'Show stack outputs'
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              AWS_DEFAULT_REGION: $(AWS_REGION)
+
+  # ============================================================================
+  # Destroy
+  # ============================================================================
+  - stage: Destroy
+    displayName: 'Destroy CloudFormation Stack'
+    condition: |
+      and(eq(variables['Build.Reason'], 'Manual'), eq('${{ parameters.action }}', 'destroy'))
+    jobs:
+      - job: DestroyStack
+        displayName: 'Delete AWS Stack'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -q awscliv2.zip
+              sudo ./aws/install --update
+            displayName: 'Install AWS CLI'
+
+          - script: |
+              aws cloudformation delete-stack --stack-name $(STACK_NAME)
+              echo "Waiting for stack deletion..."
+              aws cloudformation wait stack-delete-complete --stack-name $(STACK_NAME)
+              echo "Stack deleted."
+            displayName: 'Delete CloudFormation stack'
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              AWS_DEFAULT_REGION: $(AWS_REGION)
