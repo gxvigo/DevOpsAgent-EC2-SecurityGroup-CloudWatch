@@ -24,7 +24,7 @@ parameters:
       - destroy
 
 variables:
-  STACK_NAME: 'DevOpsAgent-EC2-webserver-AzDevOps'
+  STACK_NAME: 'DevOpsAgent-EC2-webserver-GitHub'
   AWS_REGION: 'us-east-1'
   TEMPLATE_FILE: 'cloudformation-webserver.yaml'
 
