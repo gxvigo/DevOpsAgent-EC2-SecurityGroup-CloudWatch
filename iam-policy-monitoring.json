@@ -2,38 +2,6 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Lambda",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:CreateFunction",
-        "lambda:DeleteFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:UpdateFunctionCode",
-        "lambda:UpdateFunctionConfiguration",
-        "lambda:ListVersionsByFunction",
-        "lambda:PublishVersion",
-        "lambda:AddPermission",
-        "lambda:RemovePermission",
-        "lambda:GetPolicy",
-        "lambda:TagResource",
-        "lambda:UntagResource",
-        "lambda:ListTags",
-        "lambda:PublishLayerVersion",
-        "lambda:GetLayerVersion",
-        "lambda:DeleteLayerVersion",
-        "lambda:InvokeFunction"
-      ],
-      "Resource": [
-        "arn:aws:lambda:*:*:function:NameHandlerFunction",
-        "arn:aws:lambda:*:*:function:DevOpsAgentTriggerFunction",
-        "arn:aws:lambda:*:*:function:cwsyn-*",
-        "arn:aws:lambda:*:*:function:DevOpsAgent-EC2-webserver-Git*",
-        "arn:aws:lambda:*:*:layer:cwsyn-*",
-        "arn:aws:lambda:*:*:layer:Synthetics*"
-      ]
-    },
-    {
       "Sid": "CloudWatchAlarms",
       "Effect": "Allow",
       "Action": [
@@ -45,8 +13,7 @@
         "cloudwatch:ListTagsForResource"
       ],
       "Resource": [
-        "arn:aws:cloudwatch:*:*:alarm:NameHandlerLambdaErrorAlarm",
-        "arn:aws:cloudwatch:*:*:alarm:*DevOpsAgent-EC2-webserver-GitHub*"
+        "arn:aws:cloudwatch:*:*:alarm:devops-webserver-*"
       ]
     },
     {
@@ -59,42 +26,10 @@
         "logs:PutRetentionPolicy",
         "logs:TagLogGroup",
         "logs:TagResource",
-        "logs:UntagLogGroup",
-        "logs:PutMetricFilter",
-        "logs:DeleteMetricFilter",
-        "logs:DescribeMetricFilters"
+        "logs:UntagLogGroup"
       ],
       "Resource": [
-        "arn:aws:logs:*:*:log-group:/aws/lambda/*",
-        "arn:aws:logs:*:*:log-group:/aws/lambda/*:*",
         "arn:aws:logs:*:*:log-group:/webserver/DevOpsAgent-EC2-webserver-GitHub/*"
-      ]
-    },
-    {
-      "Sid": "Synthetics",
-      "Effect": "Allow",
-      "Action": [
-        "synthetics:CreateCanary",
-        "synthetics:UpdateCanary",
-        "synthetics:DeleteCanary",
-        "synthetics:GetCanary",
-        "synthetics:DescribeCanaries",
-        "synthetics:StartCanary",
-        "synthetics:StopCanary",
-        "synthetics:TagResource",
-        "synthetics:UntagResource"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "S3",
-      "Effect": "Allow",
-      "Action": ["s3:*"],
-      "Resource": [
-        "arn:aws:s3:::devopsagent-ec2-webserver-git*",
-        "arn:aws:s3:::devopsagent-ec2-webserver-git*/*",
-        "arn:aws:s3:::aws-synthetics-library-*",
-        "arn:aws:s3:::aws-synthetics-library-*/*"
       ]
     },
     {
