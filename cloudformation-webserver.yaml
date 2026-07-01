@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: EC2 webserver with CloudWatch alarm, returning webpage
+Description: C2 webserver with CloudWatch alarm, returning webpage - v2
 
 Parameters:
   InstanceType:
