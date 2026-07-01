@@ -1,298 +1,450 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Component Diagram – cloudformation-webserver.yaml</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      padding: 32px;
-      color: #1a1a2e;
-    }
-    h1 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
-    }
-
-    /* ── layout ── */
-    .canvas {
-      position: relative;
-      width: 1060px;
-      height: 680px;
-      background: #fff;
-      border: 1px solid #dde1e7;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
-      overflow: visible;
-    }
-
-    /* ── lanes ── */
-    .lane {
-      position: absolute;
-      border: 2px dashed;
-      border-radius: 10px;
-      padding: 8px 10px 6px;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .lane-internet  { left:20px;  top:20px;  width:100px; height:640px; border-color:#aaa;    color:#888;    background:#fafafa; }
-    .lane-public    { left:140px; top:20px;  width:370px; height:640px; border-color:#e8a838; color:#c87d10; background:#fffdf5; }
-    .lane-private   { left:530px; top:20px;  width:260px; height:640px; border-color:#3b82f6; color:#1d55b3; background:#f0f6ff; }
-    .lane-aws       { left:810px; top:20px;  width:230px; height:640px; border-color:#7c3aed; color:#5b21b6; background:#f9f5ff; }
-
-    .lane-label { margin-bottom: 6px; }
-
-    /* ── boxes ── */
-    .box {
-      position: absolute;
-      border-radius: 8px;
-      border: 1.5px solid;
-      padding: 8px 10px;
-      font-size: 0.72rem;
-      line-height: 1.4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .box .icon { font-size: 1.4rem; margin-bottom: 4px; }
-    .box .name { font-weight: 700; font-size: 0.72rem; }
-    .box .sub  { font-size: 0.62rem; color: #666; margin-top: 2px; }
-
-    /* colours by service */
-    .c-internet { background:#f5f5f5; border-color:#999; }
-    .c-alb      { background:#fff3e0; border-color:#e8a838; }
-    .c-sg       { background:#fff8e1; border-color:#f59e0b; }
-    .c-ec2      { background:#e3f2fd; border-color:#3b82f6; }
-    .c-iam      { background:#fce4ec; border-color:#e91e63; }
-    .c-logs     { background:#e8f5e9; border-color:#43a047; }
-    .c-canary   { background:#f3e5f5; border-color:#9c27b0; }
-    .c-s3       { background:#fff9c4; border-color:#f9a825; }
-    .c-alarm    { background:#fbe9e7; border-color:#d84315; }
-    .c-lambda   { background:#ede7f6; border-color:#673ab7; }
-
-    /* ── SVG arrows overlay ── */
-    svg.arrows {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      overflow: visible;
-    }
-    .arrow { fill: none; stroke-width: 1.8; marker-end: url(#arrowhead); }
-    .a-http   { stroke: #e8a838; }
-    .a-log    { stroke: #43a047; stroke-dasharray: 5,3; }
-    .a-mon    { stroke: #9c27b0; stroke-dasharray: 5,3; }
-    .a-iam    { stroke: #e91e63; stroke-dasharray: 5,3; }
-    .a-lambda { stroke: #673ab7; stroke-dasharray: 5,3; }
-
-    /* legend */
-    .legend {
-      position: absolute;
-      bottom: 14px;
-      right: 14px;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 0.62rem;
-      color: #555;
-    }
-    .legend-row { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
-    .leg-line { width:24px; height:2px; }
-    .leg-solid  { background:#e8a838; }
-    .leg-green  { background:#43a047; border-top: 2px dashed #43a047; height:0; }
-    .leg-purple { background:#9c27b0; border-top: 2px dashed #9c27b0; height:0; }
-    .leg-pink   { background:#e91e63; border-top: 2px dashed #e91e63; height:0; }
-  </style>
+<html><head><style id="qw-theme">:root {
+  --color-bg: #121218;
+  --color-text: #e4e4ed;
+  --color-navbar-bg: #1a1a24;
+  --color-bg-chat-view: #121218;
+  --color-bg-secondary: #1a1a24;
+  --color-bg-tertiary: #1e1e2a;
+  --color-bg-hover: #2a2a38;
+  --color-surface: #1e1e2a;
+  --color-surface-hover: #2a2a38;
+  --color-surface-active: #353546;
+  --color-border: rgba(255, 255, 255, .12);
+  --color-border-light: rgba(255, 255, 255, .06);
+  --color-border-strong: #3a3a4e;
+  --color-primary: #8575ff;
+  --color-primary-dark: #4200db;
+  --color-primary-light: #8575ff;
+  --color-primary-bg: color-mix(in srgb, #8575ff 15%, transparent);
+  --color-primary-hover-border: #4200db;
+  --color-nav-icon-active: #8575ff;
+  --color-nav-hover-border: #8575ff;
+  --color-primary-alpha-3: color-mix(in srgb, #8575ff 3%, transparent);
+  --color-primary-alpha-5: color-mix(in srgb, #8575ff 5%, transparent);
+  --color-primary-alpha-8: color-mix(in srgb, #8575ff 8%, transparent);
+  --color-primary-alpha-12: color-mix(in srgb, #8575ff 12%, transparent);
+  --color-primary-alpha-15: color-mix(in srgb, #8575ff 15%, transparent);
+  --color-primary-alpha-20: color-mix(in srgb, #8575ff 20%, transparent);
+  --color-primary-alpha-25: color-mix(in srgb, #8575ff 25%, transparent);
+  --color-primary-alpha-30: color-mix(in srgb, #8575ff 30%, transparent);
+  --color-primary-alpha-40: color-mix(in srgb, #8575ff 40%, transparent);
+  --color-primary-alpha-50: color-mix(in srgb, #8575ff 50%, transparent);
+  --color-primary-alpha-60: color-mix(in srgb, #8575ff 60%, transparent);
+  --color-primary-subtle: color-mix(in srgb, #8575ff 25%, transparent);
+  --color-primary-border: color-mix(in srgb, #8575ff 50%, transparent);
+  --color-focus-ring: color-mix(in srgb, #8575ff 60%, transparent);
+  --color-sidebar-hover: color-mix(in srgb, #8575ff 15%, transparent);
+  --color-accent: #8575ff;
+  --color-accent-foreground: #8575ff;
+  --color-accent-dark: #4200db;
+  --color-accent-light: color-mix(in srgb, #8575ff 15%, transparent);
+  --color-accent-inverse: #ffffff;
+  --color-link: #8575ff;
+  --color-primary-gradient-end: color-mix(in srgb, #8575ff 35%, transparent);
+  --color-primary-bg-solid: #1a1530;
+  --color-user-bubble: #333843;
+  --color-user-bubble-text: #e4e4ed;
+  --color-text-secondary: #a0a0b4;
+  --color-text-tertiary: #8a8a9a;
+  --color-text-muted: #6e6e82;
+  --color-text-on-primary: #ffffff;
+  --color-success: #4ade80;
+  --color-success-dark: #00802f;
+  --color-success-light: #d9ffd6;
+  --color-success-hover: #005c26;
+  --color-success-bg: #1c2c22;
+  --color-success-border: #0e3d1c;
+  --color-success-foreground: #4ade80;
+  --color-success-dark-foreground: #00802f;
+  --color-success-text: #4ade80;
+  --color-error: #ff6b6b;
+  --color-error-dark: #db0000;
+  --color-error-light: #ffe0e0;
+  --color-error-hover: #3b1a24;
+  --color-error-bg: #3b1a24;
+  --color-error-border: #5e1a24;
+  --color-error-active-border: #db0000;
+  --color-error-foreground: #ff6b6b;
+  --color-error-dark-foreground: #db0000;
+  --color-error-inverse: #ffffff;
+  --color-error-text: #ff6b6b;
+  --color-warning: #fbbf24;
+  --color-warning-dark: #573a00;
+  --color-warning-light: #fffbbd;
+  --color-warning-hover: #db9200;
+  --color-warning-bg: #3d3520;
+  --color-warning-border: #5e4a1a;
+  --color-warning-foreground: #fbbf24;
+  --color-warning-dark-foreground: #573a00;
+  --color-warning-inverse: #573a00;
+  --color-surface-warning: #fffbbd;
+  --color-text-warning: #573a00;
+  --color-info: #60a5fa;
+  --color-info-dark: #006ce0;
+  --color-info-light: #d1f1ff;
+  --color-info-hover: #003b8f;
+  --color-info-bg: #1a2a42;
+  --color-info-border: #0f3d6e;
+  --color-info-foreground: #60a5fa;
+  --color-info-dark-foreground: #002a66;
+  --color-info-inverse: #ffffff;
+  --color-overlay: rgba(0, 0, 0, .7);
+  --color-shadow: rgba(0, 0, 0, .3);
+  --color-hover: rgba(255, 255, 255, .05);
+  --color-tooltip-bg: rgba(30, 30, 42, .95);
+  --color-tooltip-text: #e4e4ed;
+  --color-voice-purple: #8575ff;
+  --color-voice-purple-dark: #4200db;
+  --color-voice-purple-light: #8575ff;
+  --color-voice-red: #ff6b6b;
+  --color-voice-red-dark: #db0000;
+  --color-voice-amber: #fbbf24;
+  --color-voice-purple-glow: rgba(133, 117, 255, .4);
+  --color-voice-red-glow: rgba(219, 0, 0, .4);
+  --font-sans: "Amazon Ember", "Helvetica Neue", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
+  --text-2xs: .5625rem;
+  --text-xs: .625rem;
+  --text-sm: .6875rem;
+  --text-base: .75rem;
+  --text-md: .8125rem;
+  --text-lg: .875rem;
+  --text-xl: 1rem;
+  --text-2xl: 1.125rem;
+  --text-3xl: 1.25rem;
+  --text-4xl: 1.5rem;
+  --text-5xl: 2rem;
+  --spacing-1: calc(.25rem * 1);
+  --spacing-1-5: calc(.25rem * 1.5);
+  --spacing-2: calc(.25rem * 2);
+  --spacing-3: calc(.25rem * 3);
+  --spacing-4: calc(.25rem * 4);
+  --spacing-5: calc(.25rem * 5);
+  --spacing-6: calc(.25rem * 6);
+  --spacing-7: calc(.25rem * 7);
+  --spacing-8: calc(.25rem * 8);
+  --spacing-9: calc(.25rem * 9);
+  --spacing-10: calc(.25rem * 10);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-card: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 8px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .3);
+  --color-success-bg-solid: #1a3d28;
+  --color-error-bg-solid: #4a2028;
+  --color-error-border-solid: #5e1a24;
+  --color-warning-bg-solid: #4a3a1e;
+  --color-warning-text: #fbbf24;
+  --color-info-bg-solid: #1a3050;
+  --color-info-bg-solid-alt: #222240;
+  --color-info-text: #60a5fa;
+  --color-info-text-alt: #818cf8;
+  --color-emerald: #34d399;
+  --color-teal: #5eead4;
+  --color-code-bg: #1e1e2a;
+  --color-code-header-bg: #252535;
+  --color-code-text: #e4e4ed;
+  --color-code-border: #2e2e3e;
+  --color-code-muted: #6e6e82;
+  --color-inline-code-bg: #1e1e2a;
+  --color-inline-code-text: #e4e4ed;
+  --color-inline-code-border: #2e2e3e;
+  --color-scrollbar-thumb: #3a3a4e;
+  --color-scrollbar-track: transparent;
+  --color-graph-node-text: #e4e4ed;
+  --color-graph-node-text-dim: #6e6e82;
+  --color-graph-edge-default: #6e6e82;
+  --color-graph-edge-cross: #F39C12;
+  --color-graph-edge-text: #a0a0b4;
+  --color-graph-edge-stroke: #1a1a24;
+  --color-graph-highlight-bg: #FF6B6B;
+  --color-graph-highlight-border: #E74C3C;
+  --color-graph-search-bg: #FFD700;
+  --color-graph-search-border: #FFA500;
+  --color-graph-focus-border: #FF4444;
+  --color-graph-external-border: #6e6e82;
+  --color-graph-cat-file: #5DADE2;
+  --color-graph-cat-folder: #AAB7B8;
+  --color-graph-cat-file-aggregate: #5499C7;
+  --color-graph-cat-class: #BB8FCE;
+  --color-graph-cat-function: #58D68D;
+  --color-graph-cat-method: #48C9B0;
+  --color-graph-cat-variable: #F5B041;
+  --color-graph-cat-import: #EB984E;
+  --color-graph-cat-module: #7E8CE0;
+  --color-graph-cat-concept: #EC7063;
+  --color-graph-cat-person: #FF8A8A;
+  --color-graph-cat-org: #76D7C4;
+  --color-graph-cat-organization: #76D7C4;
+  --color-graph-cat-product: #B8B0FE;
+  --color-graph-cat-metric: #FEA0C0;
+  --color-graph-cat-location: #7E9BB5;
+  --color-graph-cat-date: #F092C0;
+  --color-graph-cat-code: #5DADE2;
+  --color-graph-cat-doc: #AAB7B8;
+  --color-graph-cat-url: #45D6B5;
+  --color-graph-cat-email: #8E7CF7;
+  --color-graph-cat-unknown: #D5DBDB;
+  --color-graph-rel-contains: #D5DBDB;
+  --color-graph-rel-extends: #BB8FCE;
+  --color-graph-rel-implements: #5DADE2;
+  --color-graph-rel-imports: #EB984E;
+  --color-graph-rel-uses: #58D68D;
+  --color-graph-rel-calls: #52BE80;
+  --color-graph-rel-references: #F5B041;
+  --color-graph-rel-related-to: #AAB7B8;
+  --color-graph-rel-works-on: #EC7063;
+  --color-graph-rel-owns: #48C9B0;
+  --color-graph-rel-depends-on: #EB984E;
+  --color-graph-rel-parent-of: #D5DBDB;
+  --qs-content: #fff;
+  --qs-main: #fff;
+  --qs-primary-foreground: #131920;
+  --qs-secondary-foreground: #656871;
+  --qs-tertiary-foreground: #6e6e82;
+  --qs-placeholder-foreground: #8c8c94;
+  --qs-divider: #dedee3;
+  --qs-default-border: #8c8c94;
+  --qs-neutral-soft: #b4b4bb;
+  --qs-neutral-gray-50: #1e1e2a;
+  --qs-tertiary-background: #1e1e2a;
+  --qs-action-hover: #f3f3f7;
+  --qs-primary-default: #4200db;
+  --qs-primary-dark: #35009e;
+  --qs-primary-light: #e8e6ff;
+  --qs-success-default: #00802f;
+  --qs-error-default: #db0000;
+  --qs-font-sans: "Amazon Ember", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
+  --qs-font-family: "Amazon Ember", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
+  --qs-font-base-letter-spacing: .15px;
+  --qs-shadow-sm: 0 0 2px 0 #00000029, 0 0 4px 0 #00000029;
+  --qs-shadow-md: 0 0 2px 0 #00000029, 0 2px 8px 1px #00000029;
+  --qs-shadow-lg: 0 4px 16px 4px #00000029, 0 2px 6px 1px #00000029;
+  --qs-shadow-xl: 0 4px 8px 2px #00000029, 0 6px 20px 4px #00000029;
+  --qs-width-modal-sm: 384px;
+  --qs-width-modal-md: 600px;
+  --qs-width-modal-lg: 1136px;
+  --qs-grid-gap: 16px;
+  --qs-grid-gap-xl: 24px;
+  --qs-primary-medium: #8575ff;
+  --qs-primary-inverse: #fff;
+  --qs-neutral-lightest: #f9f9fb;
+  --qs-neutral-light: #f3f3f7;
+  --qs-neutral-default: #dedee3;
+  --qs-neutral-medium: #8c8c94;
+  --qs-neutral-deep: #656871;
+  --qs-neutral-dark: #333843;
+  --qs-neutral-strong: #131920;
+  --qs-neutral-white: #fff;
+  --qs-neutral-black: #000;
+  --qs-success-medium: #005c26;
+  --qs-success-dark: #00471e;
+  --qs-success-light: #d9ffd6;
+  --qs-success-inverse: #fff;
+  --qs-info-default: #006ce0;
+  --qs-info-medium: #003b8f;
+  --qs-info-dark: #002a66;
+  --qs-info-light: #d1f1ff;
+  --qs-info-inverse: #fff;
+  --qs-warning-default: #f2b100;
+  --qs-warning-medium: #db9200;
+  --qs-warning-dark: #573a00;
+  --qs-warning-light: #fffbbd;
+  --qs-warning-inverse: #573a00;
+  --qs-warning-experimental: #f2b100;
+  --qs-warning-experimental-light: #fffbbd;
+  --qs-warning-experimental-light-foreground: #fffbbd;
+  --qs-error-medium: #900;
+  --qs-error-dark: #700000;
+  --qs-error-light: #ffe0e0;
+  --qs-error-inverse: #fff;
+  --qs-connection-default: #db3300;
+  --qs-connection-soft: #ff997a;
+  --qs-connection-light: #ffe0d6;
+  --qs-connection-dark: #661800;
+  --qs-automation-default: #b3008f;
+  --qs-automation-medium: #d600ba;
+  --qs-automation-soft: #ff94f1;
+  --qs-automation-light: #ffe0fb;
+  --qs-automation-dark: #660052;
+  --qs-insight-default: #a000b8;
+  --qs-insight-soft: #f299ff;
+  --qs-insight-light: #fce6ff;
+  --qs-insight-dark: #590066;
+  --qs-visualization-default: #7300e5;
+  --qs-visualization-soft: #d4a8ff;
+  --qs-visualization-light: #f2e5ff;
+  --qs-visualization-dark: #45008a;
+  --qs-spice: #ff9800;
+  --qs-coachmark: #006ce0;
+  --qs-brand: #fff;
+  --qs-brand-foreground: #131920;
+  --qs-brand-navbar: #131920;
+  --qs-brand-navbar-foreground: #fff;
+  --qs-brand-navbar-light: #dedee3;
+  --qs-brand-navbar-dark: #000;
+  --qs-application-navbar: #4200db;
+  --qs-application-navbar-foreground: #fff;
+  --qs-application-navbar-light: #e8e6ff;
+  --qs-application-navbar-dark: #35009e;
+  --qs-dimension: #4200db;
+  --qs-dimension-foreground: #fff;
+  --qs-dimension-experimental: #4200db;
+  --qs-dimension-experimental-foreground: #4200db;
+  --qs-measure: #00802f;
+  --qs-measure-foreground: #fff;
+  --qs-measure-experimental: #f2b100;
+  --qs-measure-experimental-foreground: #f2b100;
+  --qs-content-inverse: #333843;
+  --qs-content-inverse-active: #131920;
+  --qs-secondary: #dedee3;
+  --qs-disabled: #8c8c94;
+  --qs-divider-light: #f3f3f7;
+  --qs-hover-border: #333843;
+  --qs-active-border: #4200db;
+  --qs-disabled-border: #dedee3;
+  --qs-error-border: #ffe0e0;
+  --qs-error-active-border: #db0000;
+  --qs-disabled-foreground: #b4b4bb;
+  --qs-primary-inverse-foreground: #fff;
+  --qs-error-foreground: #db0000;
+  --qs-contrast-foreground: #131920;
+  --qs-main-foreground: #131920;
+  --qs-main-secondary-foreground: #656871;
+  --qs-action-disabled: #f3f3f7;
+  --qs-action-active: #e8e6ff;
+  --qs-default-badge: #dedee3;
+  --qs-tag-default: #dedee3;
+  --qs-tag-soft-border: #b4b4bb;
+  --qs-focus-offset: 1px;
+  --qs-toggle-tile-sm: calc(.25rem * 8);
+  --qs-toggle-tile-md: calc(.25rem * 12);
+  --qs-toggle-tile-lg: calc(.25rem * 15);
+  --qs-shadow-pin-right: inset 4px 0 4px -4px #00000029;
+  --qs-shadow-pin-left: inset -4px 0 4px -4px #00000029;
+  --react-pdf-text-layer: 1;
+  --highlight-bg-color: rgba(180, 0, 170, 1);
+  --highlight-selected-bg-color: rgba(0, 100, 0, 1);
+  --react-pdf-annotation-layer: 1;
+  --annotation-unfocused-field-background: url("data:image/svg+xml;charset=UTF-8,<svg width='1px' height='1px' xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' style='fill:rgba(0, 54, 255, 0.13);'/></svg>");
+  --input-focus-border-color: Highlight;
+  --input-focus-outline: 1px solid Canvas;
+  --input-unfocused-border-color: transparent;
+  --input-disabled-border-color: transparent;
+  --input-hover-border-color: black;
+  --link-outline: none;
+  color-scheme: dark;
+}
+body { background: var(--color-bg); color: var(--color-text); }
+a { color: var(--color-link, var(--color-primary)); }</style>
+<meta charset="UTF-8">
+<title>Component Diagram - cloudformation-webserver.yaml</title>
+<style>
+  body { margin: 0; padding: 16px; background: #f8f9fb; display: flex; justify-content: center; align-items: flex-start; }
+  .container { width: 100%; max-width: 900px; }
+</style>
 </head>
 <body>
-<h1>Component Diagram — cloudformation-webserver.yaml</h1>
+<div class="container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" width="100%">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#5C6BC0"></path>
+    </marker>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"></feDropShadow>
+    </filter>
+  </defs>
 
-<div class="canvas" id="canvas">
+  <!-- Background -->
+  <rect width="900" height="620" fill="#f8f9fb" rx="8"></rect>
 
-  <!-- ── Lanes ── -->
-  <div class="lane lane-internet"><div class="lane-label">Internet</div></div>
-  <div class="lane lane-public"><div class="lane-label">Public Subnets</div></div>
-  <div class="lane lane-private"><div class="lane-label">Private Subnet</div></div>
-  <div class="lane lane-aws"><div class="lane-label">AWS Managed Services</div></div>
+  <!-- Title -->
+  <text x="24" y="36" font-size="16" font-weight="600" fill="#1a1a2e">Component Diagram — cloudformation-webserver.yaml</text>
 
-  <!-- ── INTERNET ── -->
-  <div class="box c-internet" id="b-user" style="left:30px;top:280px;width:80px;">
-    <div class="icon">🌐</div>
-    <div class="name">Client</div>
-    <div class="sub">HTTP :443</div>
-  </div>
+  <!-- Internet zone -->
+  <rect x="30" y="60" width="140" height="200" rx="6" fill="none" stroke="#90a4ae" stroke-width="1.5" stroke-dasharray="6 3"></rect>
+  <text x="50" y="80" font-size="10" fill="#546e7a" font-weight="600" letter-spacing="1">INTERNET</text>
 
-  <!-- ── PUBLIC (ALB lane) ── -->
-  <div class="box c-sg" id="b-albsg" style="left:155px;top:120px;width:140px;">
-    <div class="icon">🔒</div>
-    <div class="name">ALBSecurityGroup</div>
-    <div class="sub">Inbound: TCP 443<br>from 2.0.0.0/0</div>
-  </div>
+  <!-- Client -->
+  <rect x="55" y="120" width="90" height="70" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="100" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="#37474f">Client</text>
+  <text x="100" y="166" text-anchor="middle" font-size="9" fill="#78909c">HTTPS :443</text>
 
-  <div class="box c-alb" id="b-alb" style="left:155px;top:260px;width:140px;">
-    <div class="icon">⚖️</div>
-    <div class="name">ApplicationLoadBalancer</div>
-    <div class="sub">internet-facing<br>PublicSubnet1 + 2</div>
-  </div>
+  <!-- Public Subnets zone -->
+  <rect x="200" y="60" width="340" height="500" rx="6" fill="#fff8e1" fill-opacity="0.4" stroke="#ffb300" stroke-width="1.5" stroke-dasharray="6 3"></rect>
+  <text x="220" y="80" font-size="10" fill="#f57f17" font-weight="600" letter-spacing="1">PUBLIC SUBNETS</text>
 
-  <div class="box c-alb" id="b-listener" style="left:155px;top:400px;width:140px;">
-    <div class="icon">👂</div>
-    <div class="name">ALBListener</div>
-    <div class="sub">HTTP :80 → forward</div>
-  </div>
+  <!-- ALB Security Group -->
+  <rect x="260" y="100" width="220" height="60" rx="8" fill="#ffffff" stroke="#ffb300" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="296" y="120" font-size="11" font-weight="600" fill="#37474f">ALBSecurityGroup</text>
+  <text x="280" y="140" font-size="9" fill="#78909c">Inbound: TCP 443 from 0.0.0.0/0</text>
 
-  <div class="box c-alb" id="b-tg" style="left:320px;top:400px;width:155px;">
-    <div class="icon">🎯</div>
-    <div class="name">ALBTargetGroup</div>
-    <div class="sub">HTTP :80<br>health: /index.html</div>
-  </div>
+  <!-- ALB -->
+  <rect x="260" y="200" width="220" height="70" rx="8" fill="#ffffff" stroke="#5C6BC0" stroke-width="1.5" filter="url(#shadow)"></rect>
+  <text x="296" y="224" font-size="11" font-weight="600" fill="#37474f">ApplicationLoadBalancer</text>
+  <text x="280" y="244" font-size="9" fill="#78909c">internet-facing</text>
+  <text x="280" y="258" font-size="9" fill="#78909c">PublicSubnet1 + 2</text>
 
-  <!-- ── PRIVATE (EC2 lane) ── -->
-  <div class="box c-sg" id="b-websg" style="left:545px;top:120px;width:140px;">
-    <div class="icon">🔒</div>
-    <div class="name">WebServerSG</div>
-    <div class="sub">Inbound: TCP 80<br>from ALBSecurityGroup</div>
-  </div>
+  <!-- ALB Listener -->
+  <rect x="260" y="320" width="140" height="55" rx="8" fill="#ffffff" stroke="#ffb300" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="280" y="344" font-size="11" font-weight="600" fill="#37474f">ALBListener</text>
+  <text x="280" y="362" font-size="9" fill="#78909c">HTTP :80 → forward</text>
 
-  <div class="box c-ec2" id="b-ec2" style="left:545px;top:290px;width:140px;">
-    <div class="icon">🖥️</div>
-    <div class="name">WebServerInstance</div>
-    <div class="sub">t3.micro · Amazon Linux 2023<br>Apache httpd · PrivateSubnet</div>
-  </div>
+  <!-- Target Group -->
+  <rect x="260" y="420" width="140" height="55" rx="8" fill="#ffffff" stroke="#ffb300" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="280" y="444" font-size="11" font-weight="600" fill="#37474f">ALBTargetGroup</text>
+  <text x="280" y="462" font-size="9" fill="#78909c">HTTP :80 · health: /index.html</text>
 
-  <div class="box c-iam" id="b-iam" style="left:545px;top:490px;width:140px;">
-    <div class="icon">🪪</div>
-    <div class="name">InstanceRole</div>
-    <div class="sub">CloudWatchAgentServerPolicy<br>AmazonSSMManagedInstanceCore</div>
-  </div>
+  <!-- Private Subnet zone -->
+  <rect x="570" y="60" width="300" height="500" rx="6" fill="#e3f2fd" fill-opacity="0.4" stroke="#1e88e5" stroke-width="1.5" stroke-dasharray="6 3"></rect>
+  <text x="590" y="80" font-size="10" fill="#1565c0" font-weight="600" letter-spacing="1">PRIVATE SUBNET</text>
 
-  <!-- ── AWS MANAGED SERVICES ── -->
-  <div class="box c-logs" id="b-logA" style="left:825px;top:60px;width:195px;">
-    <div class="icon">📋</div>
-    <div class="name">WebServerAccessLogGroup</div>
-    <div class="sub">/webserver/{stack}/access_log<br>Retention: 7 days</div>
-  </div>
+  <!-- WebServer Security Group -->
+  <rect x="610" y="100" width="230" height="60" rx="8" fill="#ffffff" stroke="#ffb300" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="646" y="120" font-size="11" font-weight="600" fill="#37474f">WebServerSG</text>
+  <text x="630" y="140" font-size="9" fill="#78909c">Inbound: TCP 80 from ALBSecurityGroup</text>
 
-  <div class="box c-logs" id="b-logE" style="left:825px;top:180px;width:195px;">
-    <div class="icon">📋</div>
-    <div class="name">WebServerErrorLogGroup</div>
-    <div class="sub">/webserver/{stack}/error_log<br>Retention: 7 days</div>
-  </div>
+  <!-- EC2 Instance -->
+  <rect x="610" y="210" width="230" height="90" rx="8" fill="#ffffff" stroke="#1e88e5" stroke-width="1.5" filter="url(#shadow)"></rect>
+  <text x="630" y="234" font-size="11" font-weight="600" fill="#37474f">WebServerInstance</text>
+  <text x="630" y="254" font-size="9" fill="#78909c">t3.micro · Amazon Linux 2023</text>
+  <text x="630" y="270" font-size="9" fill="#78909c">Apache httpd</text>
+  <text x="630" y="286" font-size="9" fill="#78909c">PrivateSubnet</text>
 
-  <div class="box c-canary" id="b-canary" style="left:825px;top:300px;width:195px;">
-    <div class="icon">🐦</div>
-    <div class="name">HeartbeatCanary</div>
-    <div class="sub">syn-nodejs-puppeteer-9.1<br>rate(1 minute) → /index.html</div>
-  </div>
+  <!-- Instance Role -->
+  <rect x="610" y="350" width="230" height="70" rx="8" fill="#ffffff" stroke="#e91e63" stroke-width="1" filter="url(#shadow)"></rect>
+  <text x="630" y="374" font-size="11" font-weight="600" fill="#37474f">InstanceRole</text>
+  <text x="630" y="394" font-size="9" fill="#78909c">CloudWatchAgentServerPolicy</text>
+  <text x="630" y="408" font-size="9" fill="#78909c">AmazonSSMManagedInstanceCore</text>
 
-  <div class="box c-s3" id="b-s3" style="left:825px;top:415px;width:195px;">
-    <div class="icon">🪣</div>
-    <div class="name">CanaryArtifactBucket</div>
-    <div class="sub">S3 · artifacts<br>Expire after 7 days</div>
-  </div>
+  <!-- Arrows -->
+  <!-- Client → Public Subnets boundary -->
+  <line x1="145" y1="155" x2="200" y2="195" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-  <div class="box c-alarm" id="b-alarm" style="left:825px;top:510px;width:195px;">
-    <div class="icon">🚨</div>
-    <div class="name">CanaryFailedAlarm</div>
-    <div class="sub">SuccessPercent &lt; 100<br>Period: 5 min · breaching</div>
-  </div>
+  <!-- SG → ALB -->
+  <line x1="370" y1="160" x2="370" y2="195" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-  <div class="box c-lambda" id="b-lambda" style="left:825px;top:600px;width:195px;">
-    <div class="icon">λ</div>
-    <div class="name">EmptyBucketFunction</div>
-    <div class="sub">Custom resource<br>empties S3 on stack delete</div>
-  </div>
+  <!-- ALB → Listener -->
+  <line x1="330" y1="270" x2="330" y2="315" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-  <!-- ── ARROWS ── -->
-  <svg class="arrows">
-    <defs>
-      <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#888" />
-      </marker>
-      <marker id="arrowhead-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#43a047" />
-      </marker>
-      <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#9c27b0" />
-      </marker>
-      <marker id="arrowhead-pink" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#e91e63" />
-      </marker>
-      <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#e8a838" />
-      </marker>
-    </defs>
+  <!-- Listener → Target Group -->
+  <line x1="330" y1="375" x2="330" y2="415" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-    <!-- Client → ALB  HTTP :80 -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
-      d="M110,310 L153,310" />
+  <!-- Target Group → Private Subnet boundary -->
+  <line x1="400" y1="447" x2="570" y2="260" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4 2"></line>
 
-    <!-- ALB SG enforces on ALB (dashed box relationship) -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)" stroke-dasharray="4,3"
-      d="M225,162 L225,258" />
+  <!-- WebServerSG → EC2 -->
+  <line x1="725" y1="160" x2="725" y2="205" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-    <!-- ALB → Listener -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
-      d="M225,332 L225,398" />
+  <!-- EC2 → Role -->
+  <line x1="725" y1="300" x2="725" y2="345" stroke="#5C6BC0" stroke-width="1.5" marker-end="url(#arrow)"></line>
 
-    <!-- Listener → TargetGroup -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
-      d="M297,440 L318,440" />
-
-    <!-- TargetGroup → EC2 -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)"
-      d="M477,440 L510,440 L510,360 L543,360" />
-
-    <!-- WebSG enforces on EC2 (dashed) -->
-    <path class="arrow a-http" marker-end="url(#arrowhead-orange)" stroke-dasharray="4,3"
-      d="M615,162 L615,288" />
-
-    <!-- EC2 → AccessLogGroup -->
-    <path class="arrow a-log" marker-end="url(#arrowhead-green)"
-      d="M687,320 L750,320 L750,92 L823,92" />
-
-    <!-- EC2 → ErrorLogGroup -->
-    <path class="arrow a-log" marker-end="url(#arrowhead-green)"
-      d="M687,340 L760,340 L760,208 L823,208" />
-
-    <!-- IAM Role → EC2 (attached) -->
-    <path class="arrow a-iam" marker-end="url(#arrowhead-pink)"
-      d="M615,488 L615,432" />
-
-    <!-- Canary → ALB (monitors) -->
-    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
-      d="M823,330 L430,330 L430,310 L297,310" />
-
-    <!-- Canary → S3 (artifacts) -->
-    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
-      d="M922,398 L922,413" />
-
-    <!-- Alarm monitors Canary -->
-    <path class="arrow a-mon" marker-end="url(#arrowhead-purple)"
-      d="M922,508 L922,488 L1020,488 L1020,538 L1023,538" />
-
-    <!-- Lambda → S3 (empties on delete) -->
-    <path class="arrow a-lambda" marker-end="url(#arrowhead)" stroke="#673ab7"
-      d="M922,598 L922,558" />
-  </svg>
-
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-row"><div class="leg-line leg-solid"></div> HTTP traffic</div>
-    <div class="legend-row"><div class="leg-line leg-green"></div> Log shipping</div>
-    <div class="legend-row"><div class="leg-line leg-purple"></div> Monitoring / artifacts</div>
-    <div class="legend-row"><div class="leg-line leg-pink"></div> IAM attachment</div>
-  </div>
-
+</svg>
 </div>
-</body>
-</html>
+
+
+</body></html>
